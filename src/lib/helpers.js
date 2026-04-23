@@ -120,3 +120,33 @@ export const extractJSON = (text) => {
     return null;
   }
 };
+
+export function xirr(cashflows) {
+  if (!cashflows || cashflows.length < 2) return null;
+  const hasPositive = cashflows.some((c) => c.amount > 0);
+  const hasNegative = cashflows.some((c) => c.amount < 0);
+  if (!hasPositive || !hasNegative) return null;
+
+  const t0 = cashflows[0].date.getTime();
+  const yearsFrom = (d) => (d.getTime() - t0) / (365 * 86400000);
+
+  const npv = (r) =>
+    cashflows.reduce((s, cf) => s + cf.amount / Math.pow(1 + r, yearsFrom(cf.date)), 0);
+  const dnpv = (r) =>
+    cashflows.reduce(
+      (s, cf) => s - (yearsFrom(cf.date) * cf.amount) / Math.pow(1 + r, yearsFrom(cf.date) + 1),
+      0
+    );
+
+  let r = 0.1;
+  for (let i = 0; i < 100; i++) {
+    const f = npv(r);
+    const df = dnpv(r);
+    if (!Number.isFinite(f) || !Number.isFinite(df) || Math.abs(df) < 1e-12) return null;
+    const rNew = r - f / df;
+    if (!Number.isFinite(rNew)) return null;
+    if (Math.abs(rNew - r) < 1e-7) return rNew;
+    r = rNew <= -0.999 ? (r - 0.999) / 2 : rNew;
+  }
+  return null;
+}
