@@ -129,15 +129,21 @@ export default function InvestmentTracker() {
   const [tempSettings, setTempSettings] = useState({ ...marketSettings });
 
   useEffect(() => {
-    const initAuth = async () => {
-      if (initialAuthToken) {
-        await signInWithCustomToken(auth, initialAuthToken);
-      } else {
-        await signInAnonymously(auth);
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      if (currentUser) {
+        setUser(currentUser);
+        return;
       }
-    };
-    initAuth().catch((err) => console.error('Auth error', err));
-    const unsubscribe = onAuthStateChanged(auth, setUser);
+      try {
+        if (initialAuthToken) {
+          await signInWithCustomToken(auth, initialAuthToken);
+        } else {
+          await signInAnonymously(auth);
+        }
+      } catch (err) {
+        console.error('Auth error', err);
+      }
+    });
     return () => unsubscribe();
   }, []);
 
