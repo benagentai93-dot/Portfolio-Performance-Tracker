@@ -47,7 +47,7 @@ Free quota: 50K reads, 20K writes, 20K deletes per day, 1 GB storage, unlimited 
 5. Confirm the "Plan" column shows **Free tier**.
 6. Paste into `.env.local`:
    ```bash
-   VITE_GEMINI_API_KEY=AIzaSy...
+   VITE_GEMINI_API_KEY=AIzaSyDo-465FNf74IRTD0xl32vpjvh_o2WLSCk
    ```
 7. Restart `npm run dev` (Vite does not hot-reload env files).
 
