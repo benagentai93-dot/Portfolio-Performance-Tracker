@@ -25,6 +25,59 @@ Then open http://localhost:5173.
 
 See `.env.example`. Without Firebase credentials the app stays on the loading screen (anonymous sign-in fails). Without `VITE_GEMINI_API_KEY` the AI features (price auto-fill, screenshot OCR, advisor chat) return errors but the rest of the app still works.
 
+## Free-tier setup guide
+
+All three external services used by this project have free tiers that are more than enough for personal use.
+
+### Firebase (Spark plan — free)
+
+1. Go to <https://console.firebase.google.com> and create a new project.
+2. Add a **Web app** → copy the six config values into `.env.local` as `VITE_FIREBASE_*`.
+3. **Authentication** → Sign-in method → enable **Anonymous**.
+4. **Firestore Database** → Create database → start in *test mode* (or set proper rules before going public).
+
+Free quota: 50K reads, 20K writes, 20K deletes per day, 1 GB storage, unlimited anonymous auth.
+
+### Gemini API (Google AI Studio — free)
+
+1. Visit <https://aistudio.google.com> and sign in with a **personal** Google account (Workspace accounts are sometimes blocked by admin policy).
+2. Open <https://aistudio.google.com/apikey> (or click the key icon in the sidebar).
+3. Click **Create API key** → *Create API key in new project* (Studio will auto-create a free Cloud project).
+4. Copy the key — it starts with `AIzaSy...`. The full string is shown once, so save it.
+5. Confirm the "Plan" column shows **Free tier**.
+6. Paste into `.env.local`:
+   ```bash
+   VITE_GEMINI_API_KEY=AIzaSy...
+   ```
+7. Restart `npm run dev` (Vite does not hot-reload env files).
+
+Free quota for Gemini 2.5 Flash: 15 RPM / 1M TPM / 1,500 requests per day.
+
+**Troubleshooting**
+
+| Symptom | Cause / fix |
+|---|---|
+| `API_KEY_INVALID` | Stray whitespace in the key — copy again |
+| `User location is not supported` | Free tier is unavailable in some regions; use a VPN or a different Google account |
+| `PERMISSION_DENIED` | Browser extension (adblock) blocks the request — disable it |
+| Empty response | The model occasionally returns non-JSON; check DevTools Network tab |
+
+### Hardening the key for public deployment
+
+The key is embedded in the browser bundle, so for public hosting:
+
+1. AI Studio → **API key** → click the key name → **Edit API key restrictions**.
+2. **Application restrictions** → *HTTP referrers* → add your domain(s) (e.g. `https://your-site.vercel.app/*`).
+3. **API restrictions** → *Restrict key* → allow only *Generative Language API*.
+
+For stronger protection, proxy the Gemini call through a serverless function and never ship the key to the browser.
+
+### Deploying for free
+
+- **Vercel** — import the GitHub repo, add the `VITE_*` env vars, deploy.
+- **Netlify** or **Cloudflare Pages** — same flow.
+- **Firebase Hosting** — `npm i -g firebase-tools && firebase init hosting` (public dir = `dist`), then `npm run build && firebase deploy`.
+
 ## Build
 
 ```bash
