@@ -1,5 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { onAuthStateChanged, signInAnonymously, signInWithCustomToken } from 'firebase/auth';
+import {
+  linkWithPopup,
+  onAuthStateChanged,
+  signInAnonymously,
+  signInWithCustomToken,
+  signInWithPopup,
+  signOut,
+} from 'firebase/auth';
 import {
   addDoc,
   collection,
@@ -36,6 +43,8 @@ import {
   ImagePlus,
   Calculator,
   AlertCircle,
+  LogIn,
+  LogOut,
 } from 'lucide-react';
 import {
   Area,
@@ -49,7 +58,7 @@ import {
   YAxis,
 } from 'recharts';
 
-import { auth, db, appId, initialAuthToken } from './lib/firebase.js';
+import { auth, db, appId, googleProvider, initialAuthToken } from './lib/firebase.js';
 import { extractJSON } from './lib/helpers.js';
 import { apiKey } from './lib/gemini.js';
 
@@ -131,6 +140,46 @@ export default function InvestmentTracker() {
     const unsubscribe = onAuthStateChanged(auth, setUser);
     return () => unsubscribe();
   }, []);
+
+  const handleGoogleSignIn = async () => {
+    try {
+      if (user?.isAnonymous) {
+        await linkWithPopup(user, googleProvider);
+        setNotification({ type: 'success', message: '已連結 Google 帳號，資料已保留' });
+      } else {
+        await signInWithPopup(auth, googleProvider);
+        setNotification({ type: 'success', message: '已登入 Google 帳號' });
+      }
+    } catch (err) {
+      if (err?.code === 'auth/credential-already-in-use' || err?.code === 'auth/email-already-in-use') {
+        try {
+          await signOut(auth);
+          await signInWithPopup(auth, googleProvider);
+          setNotification({
+            type: 'info',
+            message: '已切換到現有 Google 帳號（此瀏覽器原本的匿名資料未合併）',
+          });
+        } catch (fallbackErr) {
+          console.error('Google sign-in fallback error', fallbackErr);
+          setNotification({ type: 'error', message: '登入失敗，請再試一次' });
+        }
+      } else if (err?.code !== 'auth/popup-closed-by-user' && err?.code !== 'auth/cancelled-popup-request') {
+        console.error('Google sign-in error', err);
+        setNotification({ type: 'error', message: '登入失敗：' + (err?.message || err?.code || '未知錯誤') });
+      }
+    }
+  };
+
+  const handleSignOut = async () => {
+    try {
+      await signOut(auth);
+      await signInAnonymously(auth);
+      setNotification({ type: 'info', message: '已登出，切換為匿名使用' });
+    } catch (err) {
+      console.error('Sign out error', err);
+      setNotification({ type: 'error', message: '登出失敗' });
+    }
+  };
 
   useEffect(() => {
     if (!user) return;
@@ -883,6 +932,25 @@ export default function InvestmentTracker() {
             >
               <Database className="w-4 h-4" /> <span className="hidden sm:inline">資料管理</span>
             </button>
+            {user && !user.isAnonymous ? (
+              <button
+                onClick={handleSignOut}
+                title={user.email || user.displayName || ''}
+                className="flex items-center gap-2 text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded-lg transition-colors"
+              >
+                <LogOut className="w-4 h-4" />
+                <span className="hidden sm:inline max-w-[120px] truncate">
+                  {user.displayName || user.email || '登出'}
+                </span>
+              </button>
+            ) : (
+              <button
+                onClick={handleGoogleSignIn}
+                className="flex items-center gap-2 text-sm bg-white hover:bg-gray-50 text-gray-700 px-3 py-2 rounded-lg transition-colors border border-gray-200"
+              >
+                <LogIn className="w-4 h-4" /> <span className="hidden sm:inline">登入 Google</span>
+              </button>
+            )}
           </div>
         </div>
       </header>
