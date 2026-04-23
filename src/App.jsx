@@ -899,12 +899,14 @@ export default function InvestmentTracker() {
       )}
 
       <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
-        <div className="max-w-4xl mx-auto px-4 py-4 flex justify-between items-center">
-          <div className="flex items-center gap-2">
-            <TrendingUp className="text-blue-600 w-6 h-6" />
-            <h1 className="text-xl font-bold text-gray-800">ETF All-in 績效對比</h1>
+        <div className="max-w-4xl mx-auto px-4 py-3 sm:py-4 flex flex-wrap gap-y-2 gap-x-3 justify-between items-center">
+          <div className="flex items-center gap-2 min-w-0">
+            <TrendingUp className="text-blue-600 w-5 h-5 sm:w-6 sm:h-6 shrink-0" />
+            <h1 className="text-base sm:text-xl font-bold text-gray-800 truncate">
+              ETF All-in 績效對比
+            </h1>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2 justify-end">
             <button
               onClick={() => setShowAiModal(true)}
               className="flex items-center gap-2 text-sm bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white px-3 py-2 rounded-lg transition-all shadow-sm hover:shadow-md animate-pulse-slow"
@@ -1208,7 +1210,7 @@ export default function InvestmentTracker() {
                 </div>
               </div>
             </div>
-            <div className="h-[350px] w-full">
+            <div className="h-[260px] sm:h-[350px] w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <ComposedChart data={filteredChartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                   <defs>
