@@ -59,7 +59,7 @@ import {
 } from 'recharts';
 
 import { auth, db, appId, googleProvider, initialAuthToken } from './lib/firebase.js';
-import { extractJSON } from './lib/helpers.js';
+import { extractJSON, xirr } from './lib/helpers.js';
 import { apiKey } from './lib/gemini.js';
 
 import Toast from './components/Toast.jsx';
@@ -477,6 +477,37 @@ export default function InvestmentTracker() {
     const progressPercent = Math.min(100, Math.max(0, (userValueUSD / targetUSD) * 100));
     const remainingUSD = Math.max(0, targetUSD - userValueUSD);
 
+    const cashflows = [];
+    deposits.forEach((d) => {
+      const amt = parseFloat(d.amount) || 0;
+      if (amt !== 0 && d.date) {
+        const dt = new Date(d.date);
+        if (!Number.isNaN(dt.getTime())) cashflows.push({ date: dt, amount: -amt });
+      }
+    });
+    cashflows.sort((a, b) => a.date - b.date);
+    if (userValueUSD > 0 && cashflows.length > 0) {
+      cashflows.push({ date: new Date(), amount: userValueUSD });
+    }
+    const annualizedRate = cashflows.length >= 2 ? xirr(cashflows) : null;
+    const annualizedPct = annualizedRate != null ? annualizedRate * 100 : null;
+
+    let timeHeld = null;
+    if (cashflows.length >= 2) {
+      const totalDays =
+        (cashflows[cashflows.length - 1].date - cashflows[0].date) / 86400000;
+      const months = Math.round(totalDays / 30);
+      if (months >= 12) {
+        const y = Math.floor(months / 12);
+        const m = months % 12;
+        timeHeld = m > 0 ? `${y} 年 ${m} 個月` : `${y} 年`;
+      } else if (months >= 1) {
+        timeHeld = `${months} 個月`;
+      } else {
+        timeHeld = '不到 1 個月';
+      }
+    }
+
     return {
       totalInvestedUSD: totalInvestedUSD.toLocaleString(undefined, { maximumFractionDigits: 0 }),
       totalInvestedTWD: totalInvestedTWD.toLocaleString(undefined, { maximumFractionDigits: 0 }),
@@ -485,6 +516,8 @@ export default function InvestmentTracker() {
       userRoiUSD,
       userRoiTWD,
       userReturnUSD,
+      annualizedPct,
+      timeHeld,
       currentQQQValue,
       currentVTIValue,
       currentVTValue,
@@ -978,7 +1011,25 @@ export default function InvestmentTracker() {
             valueUSD={`${stats.userRoiUSD > 0 ? '+' : ''}${stats.userRoiUSD.toFixed(2)}%`}
             valueTWD={`${stats.userRoiTWD > 0 ? '+' : ''}${stats.userRoiTWD.toFixed(2)}%`}
             colorClass={stats.userRoiUSD >= 0 ? 'text-green-600' : 'text-red-600'}
-            subtext={`損益: $${stats.userReturnUSD.toLocaleString()}`}
+            subtext={
+              <>
+                <div>損益: ${Math.round(stats.userReturnUSD).toLocaleString()}</div>
+                {stats.annualizedPct != null && (
+                  <div>
+                    年化報酬率 (XIRR)：
+                    <span
+                      className={
+                        stats.annualizedPct >= 0 ? 'text-green-600 font-semibold' : 'text-red-600 font-semibold'
+                      }
+                    >
+                      {stats.annualizedPct >= 0 ? '+' : ''}
+                      {stats.annualizedPct.toFixed(2)}%
+                    </span>
+                    {stats.timeHeld && <span className="text-gray-400"> · 持有 {stats.timeHeld}</span>}
+                  </div>
+                )}
+              </>
+            }
           />
         </div>
         <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
