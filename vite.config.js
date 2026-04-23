@@ -14,6 +14,7 @@ export default defineConfig(({ mode }) => {
   };
 
   return {
+    base: '/Portfolio-Performance-Tracker/',
     plugins: [react()],
     define: {
       __firebase_config: JSON.stringify(JSON.stringify(firebaseConfig)),
