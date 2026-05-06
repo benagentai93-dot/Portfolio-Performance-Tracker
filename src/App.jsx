@@ -61,6 +61,7 @@ import {
 import { auth, db, appId, googleProvider, initialAuthToken } from './lib/firebase.js';
 import { extractJSON, xirr } from './lib/helpers.js';
 import { apiKey } from './lib/gemini.js';
+import { fetchLatestPrices } from './lib/priceFetcher.js';
 
 import Toast from './components/Toast.jsx';
 import StatCard from './components/StatCard.jsx';
@@ -241,7 +242,58 @@ export default function InvestmentTracker() {
         }
       }
       setMarketData(newData);
+      autoUpdateLatestPrices(newData);
     };
+
+    const autoUpdateLatestPrices = async (existingData) => {
+      try {
+        const latest = await fetchLatestPrices();
+        const tickers = ['QQQ', 'VTI', 'VT'];
+        const merged = { ...existingData };
+        const settingsUpdate = {};
+        let anyAppended = false;
+
+        for (const ticker of tickers) {
+          const entry = latest[ticker];
+          if (!entry) continue;
+          const existing = merged[ticker] || [];
+          const maxDate = existing.reduce(
+            (max, p) => (p.date > max ? p.date : max),
+            ''
+          );
+          if (entry.date > maxDate) {
+            const next = [...existing, entry].sort((a, b) =>
+              a.date.localeCompare(b.date)
+            );
+            merged[ticker] = next;
+            await setDoc(
+              doc(db, 'artifacts', appId, 'users', user.uid, 'marketData', ticker),
+              { prices: next, updatedAt: new Date().toISOString() }
+            );
+            anyAppended = true;
+          }
+          if (ticker === 'QQQ') settingsUpdate.currentQQQ = entry.close;
+          if (ticker === 'VTI') settingsUpdate.currentVTI = entry.close;
+          if (ticker === 'VT') settingsUpdate.currentVT = entry.close;
+        }
+
+        if (Object.keys(settingsUpdate).length > 0) {
+          settingsUpdate.lastAutoFetched = new Date().toISOString();
+          await setDoc(
+            doc(db, 'artifacts', appId, 'users', user.uid, 'settings', 'marketData'),
+            settingsUpdate,
+            { merge: true }
+          );
+        }
+
+        if (anyAppended) {
+          setMarketData(merged);
+        }
+      } catch (e) {
+        console.warn('[auto-update] failed:', e.message);
+      }
+    };
+
     fetchMarketData();
 
     return () => {
