@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { Database, X, UploadCloud, Archive, FileUp, FileDown } from 'lucide-react';
+import { Database, X, UploadCloud, Archive, FileUp, FileDown, Sparkles, Loader2 } from 'lucide-react';
 import Toast from './Toast.jsx';
 import { exportToCSV, exportToJSON, parseStockCSV } from '../lib/helpers.js';
 
@@ -11,6 +11,8 @@ export default function DataManagementModal({
   settings,
   onRestore,
   onUploadMarketData,
+  onBackfillTicker,
+  isBackfillingTicker,
 }) {
   const fileInputRef = useRef(null);
   const csvInputRef = useRef(null);
@@ -150,6 +152,38 @@ export default function DataManagementModal({
               支援 Yahoo Finance (Adj Close)、Investing.com 或自訂格式
             </p>
           </div>
+
+          {onBackfillTicker && (
+            <div className="border-t border-gray-100 pt-4">
+              <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">
+                ⚡ 自動補齊歷史價 + 補齊舊紀錄當時價
+              </h3>
+              <div className="grid grid-cols-2 gap-2">
+                {['QQQ', 'VTI', 'VT', 'QLD'].map((ticker) => {
+                  const busy = isBackfillingTicker === ticker;
+                  const anyBusy = !!isBackfillingTicker;
+                  return (
+                    <button
+                      key={ticker}
+                      onClick={() => onBackfillTicker(ticker)}
+                      disabled={anyBusy}
+                      className="flex items-center justify-center gap-1.5 p-2.5 bg-pink-50 hover:bg-pink-100 disabled:opacity-50 disabled:cursor-not-allowed text-pink-700 rounded-lg transition-colors border border-pink-100"
+                    >
+                      {busy ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <Sparkles className="w-4 h-4" />
+                      )}
+                      <span className="text-xs font-bold">補齊 {ticker}</span>
+                    </button>
+                  );
+                })}
+              </div>
+              <p className="text-[10px] text-gray-400 mt-2 text-center">
+                直接從 Stooq 抓歷史日線並回填舊交易紀錄缺的當時價
+              </p>
+            </div>
+          )}
 
           <div className="border-t border-gray-100 pt-4">
             <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">
