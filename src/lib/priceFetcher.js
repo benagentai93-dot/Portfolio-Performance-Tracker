@@ -36,7 +36,7 @@ const fetchFromStooq = async () => {
   if (!response.ok) throw new Error(`Stooq HTTP ${response.status}`);
   const text = await response.text();
   const parsed = parseStooqCsv(text);
-  if (Object.keys(parsed).length < 4) {
+  if (Object.keys(parsed).length < 1) {
     throw new Error('Stooq returned incomplete data');
   }
   return parsed;
