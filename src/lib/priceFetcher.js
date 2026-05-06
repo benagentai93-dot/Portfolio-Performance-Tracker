@@ -2,7 +2,7 @@ import { extractJSON } from './helpers.js';
 import { apiKey } from './gemini.js';
 
 const STOOQ_URL =
-  'https://stooq.com/q/l/?s=qqq.us+vti.us+vt.us&f=sd2t2ohlcv&h&e=csv';
+  'https://stooq.com/q/l/?s=qqq.us+vti.us+vt.us+qld.us&f=sd2t2ohlcv&h&e=csv';
 
 const GEMINI_ENDPOINT =
   'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent';
@@ -11,6 +11,7 @@ const STOOQ_TO_TICKER = {
   'QQQ.US': 'QQQ',
   'VTI.US': 'VTI',
   'VT.US': 'VT',
+  'QLD.US': 'QLD',
 };
 
 const parseStooqCsv = (csv) => {
@@ -35,7 +36,7 @@ const fetchFromStooq = async () => {
   if (!response.ok) throw new Error(`Stooq HTTP ${response.status}`);
   const text = await response.text();
   const parsed = parseStooqCsv(text);
-  if (Object.keys(parsed).length < 3) {
+  if (Object.keys(parsed).length < 1) {
     throw new Error('Stooq returned incomplete data');
   }
   return parsed;
@@ -53,7 +54,8 @@ const fetchFromGemini = async () => {
       "date": "YYYY-MM-DD",
       "qqq": number,
       "vti": number,
-      "vt": number
+      "vt": number,
+      "qld": number
     }
   `;
   const response = await fetch(`${GEMINI_ENDPOINT}?key=${apiKey}`, {
@@ -73,6 +75,7 @@ const fetchFromGemini = async () => {
   if (Number.isFinite(json.qqq)) result.QQQ = { date: json.date, close: json.qqq };
   if (Number.isFinite(json.vti)) result.VTI = { date: json.date, close: json.vti };
   if (Number.isFinite(json.vt)) result.VT = { date: json.date, close: json.vt };
+  if (Number.isFinite(json.qld)) result.QLD = { date: json.date, close: json.qld };
   return result;
 };
 

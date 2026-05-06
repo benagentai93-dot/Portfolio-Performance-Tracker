@@ -40,6 +40,7 @@ export default function CustomTooltip({ active, payload, label }) {
         if (name === 'QQQ') name = 'QQQ 市值';
         if (name === 'VTI') name = 'VTI 市值';
         if (name === 'VT') name = 'VT 市值';
+        if (name === 'QLD') name = 'QLD 市值';
 
         if (entry.value === null || entry.value === undefined) return null;
 
