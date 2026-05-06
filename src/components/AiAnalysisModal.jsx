@@ -70,6 +70,14 @@ export default function AiAnalysisModal({ isOpen, onClose, stats, depositsCount 
                 100
               ).toFixed(2)
             : 0,
+        QLD:
+          currentStats.benchmarkReturns.qld && currentStats.totalInvestedUSD
+            ? (
+                (currentStats.benchmarkReturns.qld /
+                  parseFloat(currentStats.totalInvestedUSD.replace(/,/g, ''))) *
+                100
+              ).toFixed(2)
+            : 0,
       },
       freedom: currentStats.freedomProgress,
     };
@@ -90,6 +98,7 @@ export default function AiAnalysisModal({ isOpen, onClose, stats, depositsCount 
       - QQQ: ${promptData.benchmarks.QQQ}%
       - VTI: ${promptData.benchmarks.VTI}%
       - VT: ${promptData.benchmarks.VT}%
+      - QLD (2x QQQ): ${promptData.benchmarks.QLD}%
 
       【回答原則】
       1. 請使用繁體中文。
