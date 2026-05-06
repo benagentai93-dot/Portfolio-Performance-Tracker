@@ -1,4 +1,4 @@
-import { extractJSON } from './helpers.js';
+import { extractJSON, parseStockCSV } from './helpers.js';
 import { apiKey } from './gemini.js';
 
 const STOOQ_URL =
@@ -86,4 +86,17 @@ export const fetchLatestPrices = async () => {
     console.warn('[priceFetcher] Stooq failed, falling back to Gemini:', e.message);
     return await fetchFromGemini();
   }
+};
+
+export const fetchHistoricalPrices = async (ticker) => {
+  const url = `https://stooq.com/q/d/l/?s=${ticker.toLowerCase()}.us&i=d`;
+  const response = await fetch(url);
+  if (!response.ok) throw new Error(`Stooq history HTTP ${response.status}`);
+  const text = await response.text();
+  const result = parseStockCSV(text);
+  if (result.error) throw new Error(result.error);
+  if (!result.data || result.data.length === 0) {
+    throw new Error('Stooq returned no historical data');
+  }
+  return result.data;
 };

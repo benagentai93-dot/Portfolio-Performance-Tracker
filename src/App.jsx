@@ -61,7 +61,7 @@ import {
 import { auth, db, appId, googleProvider, initialAuthToken } from './lib/firebase.js';
 import { extractJSON, xirr } from './lib/helpers.js';
 import { apiKey } from './lib/gemini.js';
-import { fetchLatestPrices } from './lib/priceFetcher.js';
+import { fetchLatestPrices, fetchHistoricalPrices } from './lib/priceFetcher.js';
 
 import Toast from './components/Toast.jsx';
 import StatCard from './components/StatCard.jsx';
@@ -106,6 +106,7 @@ export default function InvestmentTracker() {
 
   const [isFetchingPrices, setIsFetchingPrices] = useState(false);
   const [isScanningImage, setIsScanningImage] = useState(false);
+  const [isBackfillingTicker, setIsBackfillingTicker] = useState(null);
   const fileInputRef = useRef(null);
 
   const [deleteId, setDeleteId] = useState(null);
@@ -912,6 +913,60 @@ export default function InvestmentTracker() {
     }
   };
 
+  const handleBackfillTicker = async (ticker) => {
+    if (!user) return;
+    const priceField = `${ticker.toLowerCase()}Price`;
+    setIsBackfillingTicker(ticker);
+    try {
+      const history = await fetchHistoricalPrices(ticker);
+
+      await setDoc(
+        doc(db, 'artifacts', appId, 'users', user.uid, 'marketData', ticker),
+        { prices: history, updatedAt: new Date().toISOString() }
+      );
+      setMarketData((prev) => ({ ...prev, [ticker]: history }));
+
+      const findClosest = (date) => {
+        for (let i = history.length - 1; i >= 0; i--) {
+          if (history[i].date <= date) return history[i].close;
+        }
+        return null;
+      };
+
+      const candidates = deposits.filter(
+        (d) => !d[priceField] || parseFloat(d[priceField]) <= 0
+      );
+      let updated = 0;
+      let skipped = 0;
+      const batch = writeBatch(db);
+      candidates.forEach((dep) => {
+        const price = findClosest(dep.date);
+        if (price) {
+          const ref = doc(db, 'artifacts', appId, 'users', user.uid, 'deposits', dep.id);
+          batch.update(ref, { [priceField]: price, updatedAt: new Date().toISOString() });
+          updated++;
+        } else {
+          skipped++;
+        }
+      });
+      if (updated > 0) await batch.commit();
+
+      const skipMsg = skipped > 0 ? `、跳過 ${skipped} 筆 (日期早於 ${ticker} 上市)` : '';
+      setNotification({
+        type: 'success',
+        message: `${ticker} 歷史 ${history.length} 筆寫入完成，補齊 ${updated} 筆交易紀錄${skipMsg}。`,
+      });
+    } catch (err) {
+      console.error(`Backfill ${ticker} error:`, err);
+      setNotification({
+        type: 'error',
+        message: `${ticker} 補齊失敗：${err.message}。可能是 Stooq CORS 被擋,試試手動上傳 CSV。`,
+      });
+    } finally {
+      setIsBackfillingTicker(null);
+    }
+  };
+
   const executeRestoreData = async () => {
     if (!user || !restoreData) return;
 
@@ -1631,6 +1686,8 @@ export default function InvestmentTracker() {
           setShowRestoreConfirm(true);
         }}
         onUploadMarketData={handleUploadMarketData}
+        onBackfillTicker={handleBackfillTicker}
+        isBackfillingTicker={isBackfillingTicker}
       />
 
       {showAddModal && (
