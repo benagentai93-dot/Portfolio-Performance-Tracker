@@ -88,15 +88,39 @@ export const fetchLatestPrices = async () => {
   }
 };
 
-export const fetchHistoricalPrices = async (ticker) => {
-  const url = `https://stooq.com/q/d/l/?s=${ticker.toLowerCase()}.us&i=d`;
+const CORS_PROXIES = [
+  (u) => `https://corsproxy.io/?url=${encodeURIComponent(u)}`,
+  (u) => `https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`,
+];
+
+const fetchCsv = async (url) => {
   const response = await fetch(url);
-  if (!response.ok) throw new Error(`Stooq history HTTP ${response.status}`);
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
   const text = await response.text();
-  const result = parseStockCSV(text);
-  if (result.error) throw new Error(result.error);
-  if (!result.data || result.data.length === 0) {
-    throw new Error('Stooq returned no historical data');
+  if (!text || text.trim().length === 0) throw new Error('empty body');
+  return text;
+};
+
+export const fetchHistoricalPrices = async (ticker) => {
+  const stooqUrl = `https://stooq.com/q/d/l/?s=${ticker.toLowerCase()}.us&i=d`;
+  const attempts = [stooqUrl, ...CORS_PROXIES.map((p) => p(stooqUrl))];
+
+  let lastErr = null;
+  for (const url of attempts) {
+    try {
+      const text = await fetchCsv(url);
+      const result = parseStockCSV(text);
+      if (result.error) throw new Error(result.error);
+      if (!result.data || result.data.length === 0) {
+        throw new Error('no historical data');
+      }
+      return result.data;
+    } catch (e) {
+      lastErr = e;
+      console.warn(`[priceFetcher] history fetch failed for ${url}:`, e.message);
+    }
   }
-  return result.data;
+  throw new Error(
+    `無法取得 ${ticker} 歷史價 (${lastErr?.message || 'unknown'})。Stooq CORS 與代理皆失敗,請手動上傳 CSV。`
+  );
 };
