@@ -76,7 +76,7 @@ export default function InvestmentTracker() {
   const [user, setUser] = useState(null);
   const [deposits, setDeposits] = useState([]);
   const [portfolioHistory, setPortfolioHistory] = useState([]);
-  const [marketData, setMarketData] = useState({ QQQ: [], VTI: [], VT: [], QLD: [] });
+  const [marketData, setMarketData] = useState({ QQQ: [], VTI: [], VT: [], QLD: [], SOXX: [] });
   const [marketSettings, setMarketSettings] = useState({
     currentPortfolioValue: 0,
     currentExchangeRate: 32.5,
@@ -84,6 +84,7 @@ export default function InvestmentTracker() {
     currentVTI: 0,
     currentVT: 0,
     currentQLD: 0,
+    currentSOXX: 0,
     targetAmountUSD: 1000000,
     lastUpdated: null,
   });
@@ -118,6 +119,7 @@ export default function InvestmentTracker() {
     VTI: false,
     VT: false,
     QLD: false,
+    SOXX: false,
   });
 
   const [newDeposit, setNewDeposit] = useState({
@@ -129,6 +131,7 @@ export default function InvestmentTracker() {
     vtiPrice: '',
     vtPrice: '',
     qldPrice: '',
+    soxxPrice: '',
   });
 
   const [tempSettings, setTempSettings] = useState({ ...marketSettings });
@@ -234,7 +237,7 @@ export default function InvestmentTracker() {
     );
 
     const fetchMarketData = async () => {
-      const tickers = ['QQQ', 'VTI', 'VT', 'QLD'];
+      const tickers = ['QQQ', 'VTI', 'VT', 'QLD', 'SOXX'];
       const newData = {};
       for (const ticker of tickers) {
         try {
@@ -252,7 +255,7 @@ export default function InvestmentTracker() {
     const autoUpdateLatestPrices = async (existingData) => {
       try {
         const latest = await fetchLatestPrices();
-        const tickers = ['QQQ', 'VTI', 'VT', 'QLD'];
+        const tickers = ['QQQ', 'VTI', 'VT', 'QLD', 'SOXX'];
         const merged = { ...existingData };
         const settingsUpdate = {};
         let anyAppended = false;
@@ -280,6 +283,7 @@ export default function InvestmentTracker() {
           if (ticker === 'VTI') settingsUpdate.currentVTI = entry.close;
           if (ticker === 'VT') settingsUpdate.currentVT = entry.close;
           if (ticker === 'QLD') settingsUpdate.currentQLD = entry.close;
+          if (ticker === 'SOXX') settingsUpdate.currentSOXX = entry.close;
         }
 
         if (Object.keys(settingsUpdate).length > 0) {
@@ -400,7 +404,7 @@ export default function InvestmentTracker() {
 
     setIsFetchingPrices(true);
 
-    const localPrices = { qqq: null, vti: null, vt: null, qld: null };
+    const localPrices = { qqq: null, vti: null, vt: null, qld: null, soxx: null };
 
     const findLocalPrice = (ticker) => {
       const data = marketData[ticker];
@@ -417,6 +421,7 @@ export default function InvestmentTracker() {
     localPrices.vti = findLocalPrice('VTI');
     localPrices.vt = findLocalPrice('VT');
     localPrices.qld = findLocalPrice('QLD');
+    localPrices.soxx = findLocalPrice('SOXX');
 
     setNewDeposit((prev) => ({
       ...prev,
@@ -424,9 +429,11 @@ export default function InvestmentTracker() {
       vtiPrice: localPrices.vti || prev.vtiPrice,
       vtPrice: localPrices.vt || prev.vtPrice,
       qldPrice: localPrices.qld || prev.qldPrice,
+      soxxPrice: localPrices.soxx || prev.soxxPrice,
     }));
 
-    const missingStocks = !localPrices.qqq || !localPrices.vti || !localPrices.vt || !localPrices.qld;
+    const missingStocks =
+      !localPrices.qqq || !localPrices.vti || !localPrices.vt || !localPrices.qld || !localPrices.soxx;
     const missingRate = !newDeposit.exchangeRate;
 
     if (missingStocks || missingRate) {
@@ -437,6 +444,7 @@ export default function InvestmentTracker() {
             VTI: ${localPrices.vti || 'MISSING'}
             VT: ${localPrices.vt || 'MISSING'}
             QLD: ${localPrices.qld || 'MISSING'}
+            SOXX: ${localPrices.soxx || 'MISSING'}
             Rate: ${newDeposit.exchangeRate || 'MISSING'}
 
             Please find the MISSING historical prices on ${newDeposit.date} from public financial data.
@@ -452,6 +460,7 @@ export default function InvestmentTracker() {
               "vti": number (only if missing),
               "vt": number (only if missing),
               "qld": number (only if missing),
+              "soxx": number (only if missing),
               "rate": number
             }
           `;
@@ -481,6 +490,7 @@ export default function InvestmentTracker() {
             vtiPrice: aiPrices.vti || prev.vtiPrice,
             vtPrice: aiPrices.vt || prev.vtPrice,
             qldPrice: aiPrices.qld || prev.qldPrice,
+            soxxPrice: aiPrices.soxx || prev.soxxPrice,
             exchangeRate: aiPrices.rate || prev.exchangeRate,
           }));
         } else {
@@ -509,6 +519,7 @@ export default function InvestmentTracker() {
     let totalVTIShares = 0;
     let totalVTShares = 0;
     let totalQLDShares = 0;
+    let totalSOXXShares = 0;
     let activeDepositsCount = 0;
 
     deposits.forEach((d) => {
@@ -526,12 +537,14 @@ export default function InvestmentTracker() {
       if (d.vtiPrice > 0) totalVTIShares += amt / parseFloat(d.vtiPrice);
       if (d.vtPrice > 0) totalVTShares += amt / parseFloat(d.vtPrice);
       if (d.qldPrice > 0) totalQLDShares += amt / parseFloat(d.qldPrice);
+      if (d.soxxPrice > 0) totalSOXXShares += amt / parseFloat(d.soxxPrice);
     });
 
     const currentQQQValue = totalQQQShares * (marketSettings.currentQQQ || 0);
     const currentVTIValue = totalVTIShares * (marketSettings.currentVTI || 0);
     const currentVTValue = totalVTShares * (marketSettings.currentVT || 0);
     const currentQLDValue = totalQLDShares * (marketSettings.currentQLD || 0);
+    const currentSOXXValue = totalSOXXShares * (marketSettings.currentSOXX || 0);
 
     const userValueUSD = parseFloat(marketSettings.currentPortfolioValue) || 0;
     const currentRate = parseFloat(marketSettings.currentExchangeRate) || 30;
@@ -593,12 +606,14 @@ export default function InvestmentTracker() {
       currentVTIValue,
       currentVTValue,
       currentQLDValue,
+      currentSOXXValue,
       activeDepositsCount,
       benchmarkReturns: {
         qqq: currentQQQValue - totalInvestedUSD,
         vti: currentVTIValue - totalInvestedUSD,
         vt: currentVTValue - totalInvestedUSD,
         qld: currentQLDValue - totalInvestedUSD,
+        soxx: currentSOXXValue - totalInvestedUSD,
       },
       freedomProgress: {
         targetUSD,
@@ -646,7 +661,7 @@ export default function InvestmentTracker() {
 
     deposits.forEach((d) => allDatesSet.add(d.date));
     portfolioHistory.forEach((h) => allDatesSet.add(h.date));
-    ['QQQ', 'VTI', 'VT', 'QLD'].forEach((ticker) => {
+    ['QQQ', 'VTI', 'VT', 'QLD', 'SOXX'].forEach((ticker) => {
       marketData[ticker]?.forEach((p) => allDatesSet.add(p.date));
     });
     if (marketSettings.lastUpdated) allDatesSet.add('現在');
@@ -666,8 +681,14 @@ export default function InvestmentTracker() {
     const historyMap = new Map();
     portfolioHistory.forEach((h) => historyMap.set(h.date, h));
 
-    const marketPriceMap = { QQQ: new Map(), VTI: new Map(), VT: new Map(), QLD: new Map() };
-    ['QQQ', 'VTI', 'VT', 'QLD'].forEach((ticker) => {
+    const marketPriceMap = {
+      QQQ: new Map(),
+      VTI: new Map(),
+      VT: new Map(),
+      QLD: new Map(),
+      SOXX: new Map(),
+    };
+    ['QQQ', 'VTI', 'VT', 'QLD', 'SOXX'].forEach((ticker) => {
       marketData[ticker]?.forEach((p) => marketPriceMap[ticker].set(p.date, p.close));
     });
 
@@ -676,11 +697,13 @@ export default function InvestmentTracker() {
     let cumVTIShares = 0;
     let cumVTShares = 0;
     let cumQLDShares = 0;
+    let cumSOXXShares = 0;
 
     let lastPriceQQQ = null;
     let lastPriceVTI = null;
     let lastPriceVT = null;
     let lastPriceQLD = null;
+    let lastPriceSOXX = null;
 
     const dataPoints = [];
 
@@ -695,6 +718,7 @@ export default function InvestmentTracker() {
           if (d.vtiPrice > 0) cumVTIShares += amt / parseFloat(d.vtiPrice);
           if (d.vtPrice > 0) cumVTShares += amt / parseFloat(d.vtPrice);
           if (d.qldPrice > 0) cumQLDShares += amt / parseFloat(d.qldPrice);
+          if (d.soxxPrice > 0) cumSOXXShares += amt / parseFloat(d.soxxPrice);
         });
       }
 
@@ -702,32 +726,38 @@ export default function InvestmentTracker() {
       let priceVTI = null;
       let priceVT = null;
       let priceQLD = null;
+      let priceSOXX = null;
 
       if (isNow) {
         priceQQQ = parseFloat(marketSettings.currentQQQ);
         priceVTI = parseFloat(marketSettings.currentVTI);
         priceVT = parseFloat(marketSettings.currentVT);
         priceQLD = parseFloat(marketSettings.currentQLD);
+        priceSOXX = parseFloat(marketSettings.currentSOXX);
       } else {
         priceQQQ = marketPriceMap.QQQ.get(date);
         priceVTI = marketPriceMap.VTI.get(date);
         priceVT = marketPriceMap.VT.get(date);
         priceQLD = marketPriceMap.QLD.get(date);
+        priceSOXX = marketPriceMap.SOXX.get(date);
 
         if (!priceQQQ && depositMap.has(date)) priceQQQ = parseFloat(depositMap.get(date)[0].qqqPrice);
         if (!priceVTI && depositMap.has(date)) priceVTI = parseFloat(depositMap.get(date)[0].vtiPrice);
         if (!priceVT && depositMap.has(date)) priceVT = parseFloat(depositMap.get(date)[0].vtPrice);
         if (!priceQLD && depositMap.has(date)) priceQLD = parseFloat(depositMap.get(date)[0].qldPrice);
+        if (!priceSOXX && depositMap.has(date)) priceSOXX = parseFloat(depositMap.get(date)[0].soxxPrice);
 
         if (priceQQQ) lastPriceQQQ = priceQQQ;
         if (priceVTI) lastPriceVTI = priceVTI;
         if (priceVT) lastPriceVT = priceVT;
         if (priceQLD) lastPriceQLD = priceQLD;
+        if (priceSOXX) lastPriceSOXX = priceSOXX;
 
         if (!priceQQQ && lastPriceQQQ) priceQQQ = lastPriceQQQ;
         if (!priceVTI && lastPriceVTI) priceVTI = lastPriceVTI;
         if (!priceVT && lastPriceVT) priceVT = lastPriceVT;
         if (!priceQLD && lastPriceQLD) priceQLD = lastPriceQLD;
+        if (!priceSOXX && lastPriceSOXX) priceSOXX = lastPriceSOXX;
       }
 
       const point = {
@@ -737,6 +767,7 @@ export default function InvestmentTracker() {
         VTI: priceVTI ? cumVTIShares * priceVTI : null,
         VT: priceVT ? cumVTShares * priceVT : null,
         QLD: priceQLD ? cumQLDShares * priceQLD : null,
+        SOXX: priceSOXX ? cumSOXXShares * priceSOXX : null,
         MyValue: null,
         note: null,
       };
@@ -805,6 +836,7 @@ export default function InvestmentTracker() {
       vtiPrice: '',
       vtPrice: '',
       qldPrice: '',
+      soxxPrice: '',
     });
     setShowAddModal(true);
   };
@@ -820,6 +852,7 @@ export default function InvestmentTracker() {
       vtiPrice: deposit.vtiPrice || '',
       vtPrice: deposit.vtPrice || '',
       qldPrice: deposit.qldPrice || '',
+      soxxPrice: deposit.soxxPrice || '',
     });
     setShowAddModal(true);
   };
@@ -840,6 +873,7 @@ export default function InvestmentTracker() {
       vtiPrice: parseFloat(newDeposit.vtiPrice) || 0,
       vtPrice: parseFloat(newDeposit.vtPrice) || 0,
       qldPrice: parseFloat(newDeposit.qldPrice) || 0,
+      soxxPrice: parseFloat(newDeposit.soxxPrice) || 0,
       updatedAt: new Date().toISOString(),
     };
 
@@ -1036,6 +1070,7 @@ export default function InvestmentTracker() {
       currentVTI: parseFloat(tempSettings.currentVTI) || 0,
       currentVT: parseFloat(tempSettings.currentVT) || 0,
       currentQLD: parseFloat(tempSettings.currentQLD) || 0,
+      currentSOXX: parseFloat(tempSettings.currentSOXX) || 0,
       lastUpdated: new Date().toISOString(),
     };
 
@@ -1367,18 +1402,20 @@ export default function InvestmentTracker() {
                       <span className="w-3 h-3 rounded-full bg-gray-400 mr-2"></span>
                       <span className="text-xs font-bold text-gray-600">本金</span>
                     </div>
-                    {['QQQ', 'VTI', 'VT', 'QLD'].map((ticker) => {
+                    {['QQQ', 'VTI', 'VT', 'QLD', 'SOXX'].map((ticker) => {
                       const colors = {
                         QQQ: 'text-purple-600',
                         VTI: 'text-green-600',
                         VT: 'text-blue-600',
                         QLD: 'text-pink-600',
+                        SOXX: 'text-cyan-600',
                       };
                       const bgColors = {
                         QQQ: 'bg-purple-600',
                         VTI: 'bg-green-600',
                         VT: 'bg-blue-600',
                         QLD: 'bg-pink-600',
+                        SOXX: 'bg-cyan-600',
                       };
                       const isActive = visibleBenchmarks[ticker];
                       return (
@@ -1510,6 +1547,18 @@ export default function InvestmentTracker() {
                       isAnimationActive={false}
                     />
                   )}
+                  {visibleBenchmarks.SOXX && (
+                    <Line
+                      type="monotone"
+                      connectNulls
+                      dataKey="SOXX"
+                      stroke="#06b6d4"
+                      strokeWidth={2}
+                      dot={false}
+                      name="SOXX"
+                      isAnimationActive={false}
+                    />
+                  )}
                   <Line
                     type="monotone"
                     connectNulls
@@ -1530,7 +1579,7 @@ export default function InvestmentTracker() {
           <h2 className="text-lg font-bold text-gray-800 mb-3 flex items-center gap-2">
             <Target className="w-5 h-5 text-gray-600" /> 績效對決 (假如入金當下 All-in...)
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
             <ComparisonCard
               symbol="QQQ"
               userTotalReturn={stats.userReturnUSD}
@@ -1559,6 +1608,13 @@ export default function InvestmentTracker() {
               benchmarkValue={stats.currentQLDValue}
               color="bg-pink-500"
             />
+            <ComparisonCard
+              symbol="SOXX"
+              userTotalReturn={stats.userReturnUSD}
+              benchmarkTotalReturn={stats.benchmarkReturns.soxx}
+              benchmarkValue={stats.currentSOXXValue}
+              color="bg-cyan-500"
+            />
           </div>
         </div>
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
@@ -1585,13 +1641,14 @@ export default function InvestmentTracker() {
                   <th className="px-4 py-3 font-medium hidden sm:table-cell">VTI 當時價</th>
                   <th className="px-4 py-3 font-medium hidden sm:table-cell">VT 當時價</th>
                   <th className="px-4 py-3 font-medium hidden sm:table-cell">QLD 當時價</th>
+                  <th className="px-4 py-3 font-medium hidden sm:table-cell">SOXX 當時價</th>
                   <th className="px-4 py-3 font-medium text-right">操作</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {deposits.length === 0 ? (
                   <tr>
-                    <td colSpan="9" className="px-4 py-8 text-center text-gray-400">
+                    <td colSpan="10" className="px-4 py-8 text-center text-gray-400">
                       尚無紀錄，請點擊右上角新增
                     </td>
                   </tr>
@@ -1634,6 +1691,9 @@ export default function InvestmentTracker() {
                       </td>
                       <td className="px-4 py-3 text-gray-600 hidden sm:table-cell">
                         ${dep.qldPrice || '-'}
+                      </td>
+                      <td className="px-4 py-3 text-gray-600 hidden sm:table-cell">
+                        ${dep.soxxPrice || '-'}
                       </td>
                       <td className="px-4 py-3 text-right">
                         <div className="flex items-center justify-end gap-1">
@@ -1809,7 +1869,7 @@ export default function InvestmentTracker() {
                     />
                     <div className="w-6"></div>
                   </div>
-                  {['QQQ', 'VTI', 'VT', 'QLD'].map((ticker) => (
+                  {['QQQ', 'VTI', 'VT', 'QLD', 'SOXX'].map((ticker) => (
                     <div key={ticker} className="flex items-center gap-2">
                       <label className="w-12 text-sm font-bold text-gray-600">{ticker}</label>
                       <input
@@ -1928,8 +1988,8 @@ export default function InvestmentTracker() {
                 <label className="block text-sm font-bold text-gray-700 mb-3">
                   今日市場價格 (用於計算基準價值)
                 </label>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                  {['QQQ', 'VTI', 'VT', 'QLD'].map((ticker) => (
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+                  {['QQQ', 'VTI', 'VT', 'QLD', 'SOXX'].map((ticker) => (
                     <div key={ticker}>
                       <label className="block text-xs font-medium text-gray-500 mb-1">
                         {ticker} 現價

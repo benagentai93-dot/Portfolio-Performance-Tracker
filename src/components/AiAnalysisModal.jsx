@@ -78,6 +78,14 @@ export default function AiAnalysisModal({ isOpen, onClose, stats, depositsCount 
                 100
               ).toFixed(2)
             : 0,
+        SOXX:
+          currentStats.benchmarkReturns.soxx && currentStats.totalInvestedUSD
+            ? (
+                (currentStats.benchmarkReturns.soxx /
+                  parseFloat(currentStats.totalInvestedUSD.replace(/,/g, ''))) *
+                100
+              ).toFixed(2)
+            : 0,
       },
       freedom: currentStats.freedomProgress,
     };
@@ -99,6 +107,7 @@ export default function AiAnalysisModal({ isOpen, onClose, stats, depositsCount 
       - VTI: ${promptData.benchmarks.VTI}%
       - VT: ${promptData.benchmarks.VT}%
       - QLD (2x QQQ): ${promptData.benchmarks.QLD}%
+      - SOXX (半導體): ${promptData.benchmarks.SOXX}%
 
       【回答原則】
       1. 請使用繁體中文。
