@@ -960,7 +960,7 @@ export default function InvestmentTracker() {
       console.error(`Backfill ${ticker} error:`, err);
       setNotification({
         type: 'error',
-        message: `${ticker} 補齊失敗：${err.message}。可能是 Stooq CORS 被擋,試試手動上傳 CSV。`,
+        message: `${ticker} 補齊失敗：${err.message}`,
       });
     } finally {
       setIsBackfillingTicker(null);
