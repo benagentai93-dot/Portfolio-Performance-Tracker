@@ -31,6 +31,7 @@ export default function DataManagementModal({
       'VTI 當時價',
       'VT 當時價',
       'QLD 當時價',
+      'SOXX 當時價',
     ];
     const data = deposits.map((d) => [
       d.date,
@@ -41,6 +42,7 @@ export default function DataManagementModal({
       d.vtiPrice,
       d.vtPrice,
       d.qldPrice || '-',
+      d.soxxPrice || '-',
     ]);
     exportToCSV(data, 'investment_deposits.csv', headers);
   };
@@ -130,7 +132,7 @@ export default function DataManagementModal({
               📈 上傳歷史股價 (CSV) 以優化圖表
             </h3>
             <div className="grid grid-cols-2 gap-2">
-              {['QQQ', 'VTI', 'VT', 'QLD'].map((ticker) => (
+              {['QQQ', 'VTI', 'VT', 'QLD', 'SOXX'].map((ticker) => (
                 <button
                   key={ticker}
                   onClick={() => handleCsvUpload(ticker)}

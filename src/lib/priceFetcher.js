@@ -2,7 +2,7 @@ import { extractJSON, parseStockCSV } from './helpers.js';
 import { apiKey } from './gemini.js';
 
 const STOOQ_URL =
-  'https://stooq.com/q/l/?s=qqq.us+vti.us+vt.us+qld.us&f=sd2t2ohlcv&h&e=csv';
+  'https://stooq.com/q/l/?s=qqq.us+vti.us+vt.us+qld.us+soxx.us&f=sd2t2ohlcv&h&e=csv';
 
 const GEMINI_ENDPOINT =
   'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent';
@@ -12,6 +12,7 @@ const STOOQ_TO_TICKER = {
   'VTI.US': 'VTI',
   'VT.US': 'VT',
   'QLD.US': 'QLD',
+  'SOXX.US': 'SOXX',
 };
 
 const parseStooqCsv = (csv) => {
@@ -55,7 +56,8 @@ const fetchFromGemini = async () => {
       "qqq": number,
       "vti": number,
       "vt": number,
-      "qld": number
+      "qld": number,
+      "soxx": number
     }
   `;
   const response = await fetch(`${GEMINI_ENDPOINT}?key=${apiKey}`, {
@@ -76,6 +78,7 @@ const fetchFromGemini = async () => {
   if (Number.isFinite(json.vti)) result.VTI = { date: json.date, close: json.vti };
   if (Number.isFinite(json.vt)) result.VT = { date: json.date, close: json.vt };
   if (Number.isFinite(json.qld)) result.QLD = { date: json.date, close: json.qld };
+  if (Number.isFinite(json.soxx)) result.SOXX = { date: json.date, close: json.soxx };
   return result;
 };
 
