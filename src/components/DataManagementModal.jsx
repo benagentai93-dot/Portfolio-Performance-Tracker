@@ -107,7 +107,7 @@ export default function DataManagementModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 backdrop-blur-sm">
+    <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
       {notification && (
         <Toast
           message={notification.message}
@@ -115,31 +115,37 @@ export default function DataManagementModal({
           onClose={() => setNotification(null)}
         />
       )}
-      <div className="bg-white rounded-xl shadow-xl max-w-sm w-full p-6 animate-fade-in max-h-[90vh] overflow-y-auto">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
-            <Database className="w-5 h-5 text-gray-600" />
-            資料管理
-          </h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
-            <X className="w-5 h-5" />
+      <div className="bg-white rounded-2xl shadow-2xl shadow-slate-900/10 max-w-sm w-full p-6 animate-fade-in max-h-[90vh] overflow-y-auto">
+        <div className="flex justify-between items-start mb-5">
+          <div>
+            <h2 className="text-lg font-semibold text-slate-900 tracking-tight flex items-center gap-2">
+              <Database className="w-4 h-4 text-slate-500" />
+              資料管理
+            </h2>
+            <p className="text-xs text-slate-500 mt-0.5">匯入、備份、匯出</p>
+          </div>
+          <button
+            onClick={onClose}
+            className="text-slate-400 hover:text-slate-900 transition-colors p-1 rounded-full hover:bg-slate-100"
+          >
+            <X className="w-4 h-4" />
           </button>
         </div>
 
-        <div className="space-y-6">
+        <div className="space-y-5">
           <div>
-            <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">
-              📈 上傳歷史股價 (CSV) 以優化圖表
+            <h3 className="text-[11px] font-medium text-slate-500 uppercase tracking-wider mb-2.5">
+              上傳歷史股價 CSV
             </h3>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-3 gap-2">
               {['QQQ', 'VTI', 'VT', 'QLD', 'SOXX'].map((ticker) => (
                 <button
                   key={ticker}
                   onClick={() => handleCsvUpload(ticker)}
-                  className="flex flex-col items-center justify-center p-3 bg-gray-50 hover:bg-gray-100 text-gray-700 rounded-lg transition-colors border border-gray-200 gap-1"
+                  className="flex flex-col items-center justify-center py-2.5 bg-white hover:bg-slate-50 text-slate-700 rounded-lg transition-colors border border-slate-200 gap-1"
                 >
-                  <UploadCloud className="w-5 h-5 text-blue-500" />
-                  <span className="text-xs font-bold">{ticker}</span>
+                  <UploadCloud className="w-4 h-4 text-slate-400" />
+                  <span className="text-[11px] font-medium tracking-wide">{ticker}</span>
                 </button>
               ))}
             </div>
@@ -150,18 +156,18 @@ export default function DataManagementModal({
               accept=".csv"
               className="hidden"
             />
-            <p className="text-[10px] text-gray-400 mt-2 text-center">
-              支援 Yahoo Finance (Adj Close)、Investing.com 或自訂格式
+            <p className="text-[10px] text-slate-400 mt-2">
+              支援 Yahoo Finance / Investing.com / 自訂格式
             </p>
           </div>
 
           {onBackfillTicker && (
-            <div className="border-t border-gray-100 pt-4">
-              <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">
-                ⚡ 自動補齊歷史價 + 補齊舊紀錄當時價
+            <div className="border-t border-slate-100 pt-4">
+              <h3 className="text-[11px] font-medium text-slate-500 uppercase tracking-wider mb-2.5">
+                自動補齊歷史價
               </h3>
-              <div className="grid grid-cols-2 gap-2">
-                {['QQQ', 'VTI', 'VT', 'QLD'].map((ticker) => {
+              <div className="grid grid-cols-3 gap-2">
+                {['QQQ', 'VTI', 'VT', 'QLD', 'SOXX'].map((ticker) => {
                   const busy = isBackfillingTicker === ticker;
                   const anyBusy = !!isBackfillingTicker;
                   return (
@@ -169,42 +175,42 @@ export default function DataManagementModal({
                       key={ticker}
                       onClick={() => onBackfillTicker(ticker)}
                       disabled={anyBusy}
-                      className="flex items-center justify-center gap-1.5 p-2.5 bg-pink-50 hover:bg-pink-100 disabled:opacity-50 disabled:cursor-not-allowed text-pink-700 rounded-lg transition-colors border border-pink-100"
+                      className="flex items-center justify-center gap-1.5 py-2 bg-slate-900 hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-lg transition-colors"
                     >
                       {busy ? (
-                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
                       ) : (
-                        <Sparkles className="w-4 h-4" />
+                        <Sparkles className="w-3.5 h-3.5" />
                       )}
-                      <span className="text-xs font-bold">補齊 {ticker}</span>
+                      <span className="text-[11px] font-medium tracking-wide">{ticker}</span>
                     </button>
                   );
                 })}
               </div>
-              <p className="text-[10px] text-gray-400 mt-2 text-center">
-                直接從 Stooq 抓歷史日線並回填舊交易紀錄缺的當時價
+              <p className="text-[10px] text-slate-400 mt-2">
+                從 Stooq 抓歷史日線並回填舊交易紀錄缺的當時價
               </p>
             </div>
           )}
 
-          <div className="border-t border-gray-100 pt-4">
-            <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">
-              完整備份與還原
+          <div className="border-t border-slate-100 pt-4">
+            <h3 className="text-[11px] font-medium text-slate-500 uppercase tracking-wider mb-2.5">
+              備份與還原
             </h3>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-2">
               <button
                 onClick={handleBackupJSON}
-                className="flex flex-col items-center justify-center p-4 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg transition-colors border border-blue-100 gap-2"
+                className="flex items-center justify-center py-3 bg-white hover:bg-slate-50 text-slate-700 rounded-lg transition-colors border border-slate-200 gap-2"
               >
-                <Archive className="w-6 h-6" />
-                <span className="text-sm font-bold">下載備份 (JSON)</span>
+                <Archive className="w-4 h-4 text-slate-400" />
+                <span className="text-xs font-medium">下載備份</span>
               </button>
               <button
                 onClick={() => fileInputRef.current?.click()}
-                className="flex flex-col items-center justify-center p-4 bg-purple-50 hover:bg-purple-100 text-purple-700 rounded-lg transition-colors border border-purple-100 gap-2"
+                className="flex items-center justify-center py-3 bg-white hover:bg-slate-50 text-slate-700 rounded-lg transition-colors border border-slate-200 gap-2"
               >
-                <FileUp className="w-6 h-6" />
-                <span className="text-sm font-bold">還原資料</span>
+                <FileUp className="w-4 h-4 text-slate-400" />
+                <span className="text-xs font-medium">還原資料</span>
               </button>
               <input
                 type="file"
@@ -216,31 +222,31 @@ export default function DataManagementModal({
             </div>
           </div>
 
-          <div className="border-t border-gray-100 pt-4">
-            <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">
-              匯出報表 (Excel/CSV)
+          <div className="border-t border-slate-100 pt-4">
+            <h3 className="text-[11px] font-medium text-slate-500 uppercase tracking-wider mb-2.5">
+              匯出 CSV
             </h3>
             <div className="space-y-2">
               <button
                 onClick={handleExportDeposits}
-                className="w-full flex items-center justify-between p-3 bg-green-50 hover:bg-green-100 text-green-700 rounded-lg transition-colors border border-green-100"
+                className="w-full flex items-center justify-between px-3 py-2.5 bg-white hover:bg-slate-50 text-slate-700 rounded-lg transition-colors border border-slate-200"
               >
-                <span className="flex items-center gap-2 font-medium">
-                  <FileDown className="w-4 h-4" /> 匯出交易紀錄
+                <span className="flex items-center gap-2 text-xs font-medium">
+                  <FileDown className="w-3.5 h-3.5 text-slate-400" /> 匯出交易紀錄
                 </span>
-                <span className="text-xs bg-green-200 px-2 py-0.5 rounded-full">
-                  {deposits.length} 筆
+                <span className="text-[10px] tabular-nums bg-slate-100 px-2 py-0.5 rounded-full text-slate-500">
+                  {deposits.length}
                 </span>
               </button>
               <button
                 onClick={handleExportHistory}
-                className="w-full flex items-center justify-between p-3 bg-orange-50 hover:bg-orange-100 text-orange-700 rounded-lg transition-colors border border-orange-100"
+                className="w-full flex items-center justify-between px-3 py-2.5 bg-white hover:bg-slate-50 text-slate-700 rounded-lg transition-colors border border-slate-200"
               >
-                <span className="flex items-center gap-2 font-medium">
-                  <FileDown className="w-4 h-4" /> 匯出歷史市值紀錄
+                <span className="flex items-center gap-2 text-xs font-medium">
+                  <FileDown className="w-3.5 h-3.5 text-slate-400" /> 匯出歷史市值
                 </span>
-                <span className="text-xs bg-orange-200 px-2 py-0.5 rounded-full">
-                  {history.length} 筆
+                <span className="text-[10px] tabular-nums bg-slate-100 px-2 py-0.5 rounded-full text-slate-500">
+                  {history.length}
                 </span>
               </button>
             </div>

@@ -4,29 +4,31 @@ export default function StatCard({
   valueTWD,
   subtext,
   highlight = false,
-  colorClass = 'text-gray-900',
+  colorClass = 'text-slate-900',
 }) {
   return (
     <div
-      className={`bg-white p-4 rounded-xl shadow-sm border ${
-        highlight ? 'border-blue-200 bg-blue-50' : 'border-gray-100'
+      className={`bg-white rounded-2xl border p-5 transition-colors ${
+        highlight ? 'border-slate-900/10 ring-1 ring-slate-900/5' : 'border-slate-200'
       }`}
     >
-      <h3 className="text-sm font-medium text-gray-500 mb-2">{title}</h3>
-      <div className="space-y-1">
-        <div className={`text-2xl font-bold ${colorClass} flex items-baseline gap-1`}>
-          <span className="text-base opacity-60">$</span>
+      <h3 className="text-[11px] font-medium uppercase tracking-wider text-slate-500 mb-3">
+        {title}
+      </h3>
+      <div className="space-y-1.5">
+        <div className={`text-[26px] leading-none font-semibold tracking-tight tabular-nums ${colorClass} flex items-baseline gap-1`}>
+          <span className="text-base font-normal text-slate-400">$</span>
           {valueUSD}
-          <span className="text-xs font-normal text-gray-400 ml-1">USD</span>
+          <span className="text-[10px] font-medium text-slate-400 ml-1.5 tracking-wide">USD</span>
         </div>
-        <div className="text-lg font-semibold text-gray-600 flex items-baseline gap-1">
-          <span className="text-xs opacity-60">NT$</span>
+        <div className="text-base font-medium text-slate-500 tabular-nums flex items-baseline gap-1">
+          <span className="text-xs font-normal text-slate-400">NT$</span>
           {valueTWD}
-          <span className="text-xs font-normal text-gray-400 ml-1">TWD</span>
+          <span className="text-[10px] font-medium text-slate-400 ml-1.5 tracking-wide">TWD</span>
         </div>
       </div>
       {subtext && (
-        <div className="text-xs text-gray-500 mt-2 pt-2 border-t border-gray-50">{subtext}</div>
+        <div className="text-xs text-slate-500 mt-3 pt-3 border-t border-slate-100">{subtext}</div>
       )}
     </div>
   );

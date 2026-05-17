@@ -155,34 +155,36 @@ export default function AiAnalysisModal({ isOpen, onClose, stats, depositsCount 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50 backdrop-blur-sm">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden flex flex-col h-[85vh]">
-        <div className="bg-gradient-to-r from-purple-600 to-indigo-600 p-4 flex justify-between items-center text-white shrink-0">
+    <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+      <div className="bg-white rounded-2xl shadow-2xl shadow-slate-900/10 max-w-lg w-full overflow-hidden flex flex-col h-[85vh]">
+        <div className="bg-white border-b border-slate-200 px-5 py-4 flex justify-between items-center shrink-0">
           <div className="flex items-center gap-3">
-            <div className="bg-white/20 p-2 rounded-lg backdrop-blur-md">
-              <Sparkles className="w-5 h-5 text-yellow-300" />
+            <div className="bg-slate-900 text-white w-9 h-9 rounded-lg flex items-center justify-center">
+              <Sparkles className="w-4 h-4" />
             </div>
             <div>
-              <h2 className="text-lg font-bold">AI 智能投資顧問</h2>
-              <p className="text-xs text-purple-200 opacity-90 flex items-center gap-1">
-                <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
-                Online | Powered by Gemini
+              <h2 className="text-sm font-semibold text-slate-900 tracking-tight">
+                AI 投資顧問
+              </h2>
+              <p className="text-[11px] text-slate-500 flex items-center gap-1.5 mt-0.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                <span>Powered by Gemini</span>
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="text-white/80 hover:text-white transition-colors p-1 hover:bg-white/10 rounded-full"
+            className="text-slate-400 hover:text-slate-900 transition-colors p-1.5 hover:bg-slate-100 rounded-full"
           >
-            <X className="w-6 h-6" />
+            <X className="w-5 h-5" />
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-4 bg-gray-50 space-y-4">
+        <div className="flex-1 overflow-y-auto p-4 bg-slate-50 space-y-4">
           {messages.length === 0 && !isLoading && (
-            <div className="flex flex-col items-center justify-center h-full text-gray-400 space-y-2">
-              <Bot className="w-12 h-12 opacity-20" />
-              <p className="text-sm">正在準備您的投資分析報告...</p>
+            <div className="flex flex-col items-center justify-center h-full text-slate-400 space-y-2">
+              <Bot className="w-10 h-10 opacity-30" />
+              <p className="text-xs">正在準備投資分析報告...</p>
             </div>
           )}
 
@@ -197,21 +199,21 @@ export default function AiAnalysisModal({ isOpen, onClose, stats, depositsCount 
                 }`}
               >
                 <div
-                  className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
-                    msg.role === 'user' ? 'bg-indigo-100' : 'bg-purple-100'
+                  className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 ${
+                    msg.role === 'user' ? 'bg-slate-900 text-white' : 'bg-white border border-slate-200 text-slate-600'
                   }`}
                 >
                   {msg.role === 'user' ? (
-                    <User className="w-5 h-5 text-indigo-600" />
+                    <User className="w-3.5 h-3.5" />
                   ) : (
-                    <Bot className="w-5 h-5 text-purple-600" />
+                    <Bot className="w-3.5 h-3.5" />
                   )}
                 </div>
                 <div
-                  className={`p-3 rounded-2xl text-sm leading-relaxed whitespace-pre-line shadow-sm ${
+                  className={`px-3.5 py-2.5 rounded-2xl text-sm leading-relaxed whitespace-pre-line ${
                     msg.role === 'user'
-                      ? 'bg-indigo-600 text-white rounded-tr-none'
-                      : 'bg-white text-gray-800 border border-gray-100 rounded-tl-none'
+                      ? 'bg-slate-900 text-white rounded-tr-sm'
+                      : 'bg-white text-slate-700 border border-slate-200 rounded-tl-sm'
                   }`}
                 >
                   {msg.text}
@@ -223,20 +225,20 @@ export default function AiAnalysisModal({ isOpen, onClose, stats, depositsCount 
           {isLoading && (
             <div className="flex w-full justify-start">
               <div className="flex max-w-[85%] gap-2">
-                <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center shrink-0">
-                  <Bot className="w-5 h-5 text-purple-600" />
+                <div className="w-7 h-7 rounded-full bg-white border border-slate-200 flex items-center justify-center shrink-0">
+                  <Bot className="w-3.5 h-3.5 text-slate-600" />
                 </div>
-                <div className="bg-white p-3 rounded-2xl rounded-tl-none border border-gray-100 shadow-sm flex items-center gap-2">
+                <div className="bg-white px-4 py-3 rounded-2xl rounded-tl-sm border border-slate-200 flex items-center gap-1.5">
                   <div
-                    className="w-2 h-2 bg-purple-400 rounded-full animate-bounce"
+                    className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce"
                     style={{ animationDelay: '0ms' }}
                   ></div>
                   <div
-                    className="w-2 h-2 bg-purple-400 rounded-full animate-bounce"
+                    className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce"
                     style={{ animationDelay: '150ms' }}
                   ></div>
                   <div
-                    className="w-2 h-2 bg-purple-400 rounded-full animate-bounce"
+                    className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce"
                     style={{ animationDelay: '300ms' }}
                   ></div>
                 </div>
@@ -246,7 +248,7 @@ export default function AiAnalysisModal({ isOpen, onClose, stats, depositsCount 
           <div ref={messagesEndRef} />
         </div>
 
-        <div className="p-4 bg-white border-t border-gray-100 shrink-0">
+        <div className="p-4 bg-white border-t border-slate-200 shrink-0">
           <form
             onSubmit={(e) => {
               e.preventDefault();
@@ -258,26 +260,26 @@ export default function AiAnalysisModal({ isOpen, onClose, stats, depositsCount 
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="輸入問題，例如：我該如何改進？"
+              placeholder="輸入問題..."
               disabled={isLoading}
-              className="flex-1 bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-full focus:ring-purple-500 focus:border-purple-500 block w-full p-3 pl-4 outline-none disabled:opacity-50 transition-all"
+              className="flex-1 bg-slate-50 border border-slate-200 text-slate-900 text-sm rounded-full focus:ring-2 focus:ring-slate-900/10 focus:border-slate-400 block w-full px-4 py-2.5 outline-none disabled:opacity-50 transition-all"
             />
             <button
               type="submit"
               disabled={isLoading || !input.trim()}
-              className="bg-purple-600 hover:bg-purple-700 text-white p-3 rounded-full shadow-md disabled:opacity-50 disabled:cursor-not-allowed transition-transform active:scale-95"
+              className="bg-slate-900 hover:bg-slate-800 text-white w-10 h-10 rounded-full flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed transition-colors active:scale-95"
             >
               <Send className="w-4 h-4" />
             </button>
           </form>
-          <div className="flex gap-2 mt-3 overflow-x-auto pb-1 no-scrollbar">
-            {['分析我的資產配置', '最近表現如何？', '匯率影響大嗎？', '距離財富自由還要多久？'].map(
+          <div className="flex gap-1.5 mt-3 overflow-x-auto pb-1 no-scrollbar">
+            {['分析我的資產配置', '最近表現如何', '匯率影響大嗎', '距離財富自由還要多久'].map(
               (suggestion) => (
                 <button
                   key={suggestion}
                   onClick={() => handleSendMessage(suggestion)}
                   disabled={isLoading}
-                  className="whitespace-nowrap px-3 py-1 bg-gray-50 hover:bg-purple-50 text-xs text-gray-600 hover:text-purple-700 border border-gray-200 hover:border-purple-200 rounded-full transition-colors"
+                  className="whitespace-nowrap px-3 py-1.5 bg-white hover:bg-slate-50 text-[11px] text-slate-600 hover:text-slate-900 border border-slate-200 rounded-full transition-colors"
                 >
                   {suggestion}
                 </button>

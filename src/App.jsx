@@ -382,7 +382,7 @@ export default function InvestmentTracker() {
         }));
         setNotification({
           type: 'success',
-          message: '🎉 掃描成功！已為您自動填入資料，建議點擊「智慧填入」補齊股價。',
+          message: '掃描成功,已自動填入資料。建議點擊「智慧填入」補齊股價。',
         });
       } else {
         setNotification({ type: 'error', message: '無法從圖片中辨識所需資訊，請手動輸入。' });
@@ -1094,11 +1094,18 @@ export default function InvestmentTracker() {
   };
 
   if (loading) {
-    return <div className="flex h-screen items-center justify-center text-gray-500">載入數據中...</div>;
+    return (
+      <div className="flex h-screen items-center justify-center bg-slate-50 text-slate-500 text-sm">
+        載入中...
+      </div>
+    );
   }
 
+  const navBtn =
+    'flex items-center gap-1.5 text-sm bg-white hover:bg-slate-50 text-slate-700 px-3 py-2 rounded-lg border border-slate-200 transition-colors';
+
   return (
-    <div className="min-h-screen bg-gray-50 text-gray-900 font-sans pb-10">
+    <div className="min-h-screen bg-slate-50 text-slate-900 pb-12">
       {notification && (
         <Toast
           message={notification.message}
@@ -1107,18 +1114,25 @@ export default function InvestmentTracker() {
         />
       )}
 
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
-        <div className="max-w-4xl mx-auto px-4 py-3 sm:py-4 flex flex-wrap gap-y-2 gap-x-3 justify-between items-center">
-          <div className="flex items-center gap-2 min-w-0">
-            <TrendingUp className="text-blue-600 w-5 h-5 sm:w-6 sm:h-6 shrink-0" />
-            <h1 className="text-base sm:text-xl font-bold text-gray-800 truncate">
-              ETF All-in 績效對比
-            </h1>
+      <header className="bg-white/90 backdrop-blur border-b border-slate-200 sticky top-0 z-10">
+        <div className="max-w-5xl mx-auto px-4 py-3 sm:py-4 flex flex-wrap gap-y-2 gap-x-3 justify-between items-center">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="bg-slate-900 text-white w-8 h-8 rounded-lg flex items-center justify-center shrink-0">
+              <TrendingUp className="w-4 h-4" />
+            </div>
+            <div className="min-w-0">
+              <h1 className="text-sm sm:text-base font-semibold text-slate-900 tracking-tight truncate">
+                Portfolio Performance
+              </h1>
+              <p className="text-[11px] text-slate-500 tracking-wide hidden sm:block">
+                ETF All-in 績效對比
+              </p>
+            </div>
           </div>
           <div className="flex flex-wrap gap-2 justify-end">
             <button
               onClick={() => setShowAiModal(true)}
-              className="flex items-center gap-2 text-sm bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white px-3 py-2 rounded-lg transition-all shadow-sm hover:shadow-md animate-pulse-slow"
+              className="flex items-center gap-1.5 text-sm bg-slate-900 hover:bg-slate-800 text-white px-3 py-2 rounded-lg transition-colors"
             >
               <Sparkles className="w-4 h-4" /> <span className="hidden sm:inline">AI 績效診斷</span>
             </button>
@@ -1127,27 +1141,21 @@ export default function InvestmentTracker() {
                 setTempSettings(marketSettings);
                 setShowSettingsModal(true);
               }}
-              className="flex items-center gap-2 text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded-lg transition-colors"
+              className={navBtn}
             >
               <RefreshCw className="w-4 h-4" /> <span className="hidden sm:inline">更新現價</span>
             </button>
-            <button
-              onClick={() => setShowHistoryModal(true)}
-              className="flex items-center gap-2 text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded-lg transition-colors"
-            >
-              <History className="w-4 h-4" /> <span className="hidden sm:inline">紀錄歷史市值</span>
+            <button onClick={() => setShowHistoryModal(true)} className={navBtn}>
+              <History className="w-4 h-4" /> <span className="hidden sm:inline">紀錄歷史</span>
             </button>
-            <button
-              onClick={() => setShowDataModal(true)}
-              className="flex items-center gap-2 text-sm bg-blue-50 hover:bg-blue-100 text-blue-700 px-3 py-2 rounded-lg transition-colors border border-blue-100"
-            >
+            <button onClick={() => setShowDataModal(true)} className={navBtn}>
               <Database className="w-4 h-4" /> <span className="hidden sm:inline">資料管理</span>
             </button>
             {user && !user.isAnonymous ? (
               <button
                 onClick={handleSignOut}
                 title={user.email || user.displayName || ''}
-                className="flex items-center gap-2 text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded-lg transition-colors"
+                className={navBtn}
               >
                 <LogOut className="w-4 h-4" />
                 <span className="hidden sm:inline max-w-[120px] truncate">
@@ -1155,10 +1163,7 @@ export default function InvestmentTracker() {
                 </span>
               </button>
             ) : (
-              <button
-                onClick={handleGoogleSignIn}
-                className="flex items-center gap-2 text-sm bg-white hover:bg-gray-50 text-gray-700 px-3 py-2 rounded-lg transition-colors border border-gray-200"
-              >
+              <button onClick={handleGoogleSignIn} className={navBtn}>
                 <LogIn className="w-4 h-4" /> <span className="hidden sm:inline">登入 Google</span>
               </button>
             )}
@@ -1166,173 +1171,169 @@ export default function InvestmentTracker() {
         </div>
       </header>
 
-      <main className="max-w-4xl mx-auto px-4 py-6 space-y-6">
+      <main className="max-w-5xl mx-auto px-4 py-6 space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <StatCard
             title="總投入本金"
-            valueUSD={`$${stats.totalInvestedUSD}`}
+            valueUSD={`${stats.totalInvestedUSD}`}
             valueTWD={`${stats.totalInvestedTWD}`}
             subtext={`${stats.activeDepositsCount} 筆交易紀錄`}
           />
           <StatCard
             title="目前投資總市值"
-            valueUSD={`$${stats.userValueUSD}`}
+            valueUSD={`${stats.userValueUSD}`}
             valueTWD={`${stats.userValueTWD}`}
-            highlight={true}
-            colorClass="text-blue-600"
-            subtext={`匯率基準: 1 USD ≈ ${marketSettings.currentExchangeRate} TWD`}
+            highlight
+            subtext={`匯率基準  1 USD ≈ ${marketSettings.currentExchangeRate} TWD`}
           />
           <StatCard
-            title="您的總投資報酬率"
+            title="總投資報酬率"
             valueUSD={`${stats.userRoiUSD > 0 ? '+' : ''}${stats.userRoiUSD.toFixed(2)}%`}
             valueTWD={`${stats.userRoiTWD > 0 ? '+' : ''}${stats.userRoiTWD.toFixed(2)}%`}
-            colorClass={stats.userRoiUSD >= 0 ? 'text-green-600' : 'text-red-600'}
+            colorClass={stats.userRoiUSD >= 0 ? 'text-emerald-600' : 'text-rose-600'}
             subtext={
               <>
-                <div>損益: ${Math.round(stats.userReturnUSD).toLocaleString()}</div>
+                <div className="tabular-nums">
+                  損益 ${Math.round(stats.userReturnUSD).toLocaleString()}
+                </div>
                 {stats.annualizedPct != null && (
                   <div>
-                    年化報酬率 (XIRR)：
+                    年化 (XIRR){' '}
                     <span
-                      className={
-                        stats.annualizedPct >= 0 ? 'text-green-600 font-semibold' : 'text-red-600 font-semibold'
-                      }
+                      className={`tabular-nums font-semibold ${
+                        stats.annualizedPct >= 0 ? 'text-emerald-600' : 'text-rose-600'
+                      }`}
                     >
                       {stats.annualizedPct >= 0 ? '+' : ''}
                       {stats.annualizedPct.toFixed(2)}%
                     </span>
-                    {stats.timeHeld && <span className="text-gray-400"> · 持有 {stats.timeHeld}</span>}
+                    {stats.timeHeld && (
+                      <span className="text-slate-400"> · 持有 {stats.timeHeld}</span>
+                    )}
                   </div>
                 )}
               </>
             }
           />
         </div>
-        <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
-          <div className="flex justify-between items-end mb-3">
-            <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2">
-              <Flag className="w-5 h-5 text-red-500" />
-              財富自由進度
-            </h2>
-            <span className="text-xs sm:text-sm font-medium text-gray-500 bg-gray-50 px-2 py-1 rounded-lg">
-              目標:{' '}
-              <span className="font-bold text-gray-700">
-                ${stats.freedomProgress.targetUSD.toLocaleString()} USD
-              </span>
-              <span className="hidden sm:inline">
-                {' '}
-                (約 NT${Math.round(stats.freedomProgress.targetTWD).toLocaleString()})
-              </span>
-            </span>
+        <div className="bg-white p-5 sm:p-6 rounded-2xl border border-slate-200">
+          <div className="flex justify-between items-start mb-4">
+            <div>
+              <h2 className="text-[11px] font-medium uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
+                <Flag className="w-3.5 h-3.5" />
+                財富自由進度
+              </h2>
+              <p className="text-2xl font-semibold text-slate-900 tabular-nums tracking-tight mt-1">
+                {stats.freedomProgress.progressPercent.toFixed(1)}
+                <span className="text-base text-slate-400 font-normal">%</span>
+              </p>
+            </div>
+            <div className="text-right">
+              <p className="text-[11px] font-medium uppercase tracking-wider text-slate-500">目標</p>
+              <p className="text-sm font-semibold text-slate-900 tabular-nums mt-1">
+                ${stats.freedomProgress.targetUSD.toLocaleString()}
+              </p>
+              <p className="text-[11px] text-slate-400 tabular-nums hidden sm:block">
+                NT${Math.round(stats.freedomProgress.targetTWD).toLocaleString()}
+              </p>
+            </div>
           </div>
 
-          <div className="relative h-7 bg-gray-100 rounded-full overflow-hidden mb-3 shadow-inner">
+          <div className="relative h-2 bg-slate-100 rounded-full overflow-hidden mb-4">
             <div
-              className="absolute top-0 left-0 h-full bg-gradient-to-r from-blue-400 to-blue-600 transition-all duration-1000 ease-out flex items-center justify-end px-2"
+              className="absolute top-0 left-0 h-full bg-slate-900 transition-all duration-700 ease-out rounded-full"
               style={{ width: `${Math.min(100, stats.freedomProgress.progressPercent)}%` }}
             ></div>
-            <div className="absolute inset-0 flex items-center justify-center text-xs font-bold text-gray-700 drop-shadow-sm mix-blend-multiply z-10">
-              {stats.freedomProgress.progressPercent.toFixed(1)}%
-            </div>
-            {stats.freedomProgress.progressPercent > 50 && (
-              <div
-                className="absolute inset-0 flex items-center justify-center text-xs font-bold text-white drop-shadow-md z-20"
-                style={{
-                  clipPath: `polygon(0 0, ${stats.freedomProgress.progressPercent}% 0, ${stats.freedomProgress.progressPercent}% 100%, 0 100%)`,
-                }}
-              >
-                {stats.freedomProgress.progressPercent.toFixed(1)}%
-              </div>
-            )}
           </div>
 
-          <div className="flex flex-col sm:flex-row justify-between text-sm text-gray-600 gap-1">
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-blue-500"></div>
-              目前資產:{' '}
-              <span className="font-bold text-blue-600">
+          <div className="flex flex-col sm:flex-row justify-between text-sm gap-1.5">
+            <div className="flex items-center gap-2 text-slate-600">
+              <div className="w-1.5 h-1.5 rounded-full bg-slate-900"></div>
+              <span>目前資產</span>
+              <span className="font-semibold text-slate-900 tabular-nums">
                 ${stats.freedomProgress.userValueUSDRaw.toLocaleString()}
               </span>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 text-slate-600">
               {stats.freedomProgress.remainingUSD > 0 ? (
                 <>
-                  <div className="w-2 h-2 rounded-full bg-gray-300"></div>
-                  距離目標還差:{' '}
-                  <span className="font-bold text-gray-800">
+                  <div className="w-1.5 h-1.5 rounded-full bg-slate-300"></div>
+                  <span>還差</span>
+                  <span className="font-semibold text-slate-900 tabular-nums">
                     ${stats.freedomProgress.remainingUSD.toLocaleString()}
                   </span>
-                  <span className="text-xs text-gray-400">
-                    (約 NT$
+                  <span className="text-xs text-slate-400 tabular-nums">
+                    NT$
                     {Math.round(
                       stats.freedomProgress.remainingUSD * stats.freedomProgress.currentRate
                     ).toLocaleString()}
-                    )
                   </span>
                 </>
               ) : (
-                <span className="text-green-600 font-bold flex items-center gap-1">
-                  <CheckCircle2 className="w-4 h-4" /> 恭喜！已達成財富自由目標！
+                <span className="text-emerald-600 font-medium flex items-center gap-1">
+                  <CheckCircle2 className="w-4 h-4" /> 已達成財富自由目標
                 </span>
               )}
             </div>
           </div>
 
-          <div className="pt-4 border-t border-gray-100 mt-4">
+          <div className="pt-4 border-t border-slate-100 mt-5">
             <button
               onClick={() => setShowProjection(!showProjection)}
-              className="text-sm font-bold text-blue-600 hover:text-blue-700 flex items-center gap-1.5 transition-colors"
+              className="text-xs font-medium text-slate-600 hover:text-slate-900 flex items-center gap-1.5 transition-colors"
             >
-              <Calculator className="w-4 h-4" />{' '}
-              {showProjection ? '隱藏進度預測' : '展開達標預測試算'}
+              <Calculator className="w-3.5 h-3.5" />{' '}
+              {showProjection ? '隱藏達標預測' : '展開達標預測'}
             </button>
 
             {showProjection && (
-              <div className="mt-3 bg-blue-50 p-4 rounded-xl flex flex-col sm:flex-row gap-4 items-center border border-blue-100 animate-in fade-in slide-in-from-top-2">
+              <div className="mt-4 bg-slate-50 p-4 rounded-xl flex flex-col sm:flex-row gap-4 items-center border border-slate-200 animate-fade-in">
                 <div className="flex-1 w-full">
-                  <label className="block text-xs font-bold text-gray-600 mb-1">
-                    預計每年入金 (USD)
+                  <label className="block text-[11px] font-medium uppercase tracking-wider text-slate-500 mb-1.5">
+                    每年入金 (USD)
                   </label>
                   <input
                     type="number"
                     value={projAnnualDeposit}
                     onChange={(e) => setProjAnnualDeposit(e.target.value)}
-                    className="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 outline-none"
-                    placeholder="例: 12000"
+                    className="w-full px-3 py-2 text-sm rounded-lg border border-slate-200 bg-white tabular-nums focus:ring-2 focus:ring-slate-900/10 focus:border-slate-400 outline-none transition"
+                    placeholder="12000"
                   />
                 </div>
                 <div className="flex-1 w-full">
-                  <label className="block text-xs font-bold text-gray-600 mb-1">
-                    預期年化報酬率 (%)
+                  <label className="block text-[11px] font-medium uppercase tracking-wider text-slate-500 mb-1.5">
+                    預期年化報酬 (%)
                   </label>
                   <input
                     type="number"
                     value={projAnnualReturn}
                     onChange={(e) => setProjAnnualReturn(e.target.value)}
-                    className="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 outline-none"
-                    placeholder="例: 7"
+                    className="w-full px-3 py-2 text-sm rounded-lg border border-slate-200 bg-white tabular-nums focus:ring-2 focus:ring-slate-900/10 focus:border-slate-400 outline-none transition"
+                    placeholder="7"
                   />
                 </div>
                 <div className="flex-1 w-full text-center sm:text-right mt-2 sm:mt-0 flex flex-col justify-center">
                   {projection.possible ? (
                     projection.years === 0 ? (
-                      <span className="text-green-600 font-bold text-lg flex items-center justify-center sm:justify-end gap-1">
-                        <CheckCircle2 className="w-5 h-5" /> 已達標！
+                      <span className="text-emerald-600 font-semibold text-base flex items-center justify-center sm:justify-end gap-1">
+                        <CheckCircle2 className="w-5 h-5" /> 已達標
                       </span>
                     ) : (
                       <>
-                        <span className="text-xs text-gray-500 font-medium">預計還需</span>
-                        <span className="text-2xl font-black text-blue-700 leading-tight">
-                          {' '}
-                          {projection.years.toFixed(1)} <span className="text-base font-bold">年</span>
+                        <span className="text-[11px] uppercase tracking-wider text-slate-500 font-medium">
+                          預計還需
                         </span>
-                        <div className="text-xs text-gray-500 mt-0.5">
-                          大約 {new Date().getFullYear() + Math.ceil(projection.years)} 年達成目標
+                        <span className="text-3xl font-semibold text-slate-900 leading-tight tabular-nums tracking-tight">
+                          {projection.years.toFixed(1)}
+                          <span className="text-base font-normal text-slate-500 ml-1">年</span>
+                        </span>
+                        <div className="text-[11px] text-slate-400 mt-0.5 tabular-nums">
+                          約 {new Date().getFullYear() + Math.ceil(projection.years)} 年達成
                         </div>
                       </>
                     )
                   ) : (
-                    <span className="text-red-500 text-sm font-bold flex items-center justify-center sm:justify-end gap-1">
+                    <span className="text-rose-600 text-sm font-medium flex items-center justify-center sm:justify-end gap-1">
                       <AlertCircle className="w-4 h-4" /> 目前條件無法達標
                     </span>
                   )}
@@ -1342,28 +1343,28 @@ export default function InvestmentTracker() {
           </div>
         </div>
         {deposits.length > 0 && (
-          <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+          <div className="bg-white p-5 sm:p-6 rounded-2xl border border-slate-200">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-5 gap-4">
               <div>
-                <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2">
-                  <BarChart3 className="w-5 h-5 text-gray-600" />
-                  資產與獲利趨勢 (USD)
+                <h2 className="text-[11px] font-medium uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
+                  <BarChart3 className="w-3.5 h-3.5" />
+                  資產走勢
                 </h2>
-                <p className="text-xs text-gray-400 mt-1">
-                  橘色線為您的歷史資產走勢，請輸入歷史市值以繪製更完整的曲線。
+                <p className="text-sm font-medium text-slate-700 mt-0.5">
+                  歷史資產與基準比較 <span className="text-slate-400 font-normal">(USD)</span>
                 </p>
               </div>
 
-              <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
-                <div className="flex flex-wrap gap-2">
+              <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
+                <div className="flex flex-wrap gap-1 bg-slate-100 p-1 rounded-lg">
                   {['5D', '1M', '6M', 'YTD', '1Y', '5Y', 'Max'].map((range) => (
                     <button
                       key={range}
                       onClick={() => setTimeRange(range)}
-                      className={`px-3 py-1 text-xs font-medium rounded-full transition-colors ${
+                      className={`px-2.5 py-1 text-[11px] font-medium rounded-md transition-colors ${
                         timeRange === range
-                          ? 'bg-blue-600 text-white'
-                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                          ? 'bg-white text-slate-900 shadow-sm'
+                          : 'text-slate-500 hover:text-slate-700'
                       }`}
                     >
                       {range === '5D'
@@ -1382,64 +1383,57 @@ export default function InvestmentTracker() {
                     </button>
                   ))}
                 </div>
-
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => setShowPnL(!showPnL)}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-md transition-all border ${
-                      showPnL
-                        ? 'bg-orange-100 border-orange-200 text-orange-700 shadow-sm'
-                        : 'bg-gray-100 border-gray-200 text-gray-400 hover:bg-gray-200'
-                    }`}
-                    title={showPnL ? '隱藏損益區域' : '顯示損益區域'}
-                  >
-                    {showPnL ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
-                    <span>損益</span>
-                  </button>
-
-                  <div className="flex flex-wrap gap-2 bg-gray-50 p-2 rounded-lg">
-                    <div className="flex items-center mr-3 px-2 border-r border-gray-200">
-                      <span className="w-3 h-3 rounded-full bg-gray-400 mr-2"></span>
-                      <span className="text-xs font-bold text-gray-600">本金</span>
-                    </div>
-                    {['QQQ', 'VTI', 'VT', 'QLD', 'SOXX'].map((ticker) => {
-                      const colors = {
-                        QQQ: 'text-purple-600',
-                        VTI: 'text-green-600',
-                        VT: 'text-blue-600',
-                        QLD: 'text-pink-600',
-                        SOXX: 'text-cyan-600',
-                      };
-                      const bgColors = {
-                        QQQ: 'bg-purple-600',
-                        VTI: 'bg-green-600',
-                        VT: 'bg-blue-600',
-                        QLD: 'bg-pink-600',
-                        SOXX: 'bg-cyan-600',
-                      };
-                      const isActive = visibleBenchmarks[ticker];
-                      return (
-                        <button
-                          key={ticker}
-                          onClick={() => toggleBenchmark(ticker)}
-                          className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-md transition-all border ${
-                            isActive
-                              ? 'bg-white border-gray-200 shadow-sm'
-                              : 'bg-transparent border-transparent text-gray-400 opacity-60 hover:opacity-100'
-                          }`}
-                        >
-                          <div
-                            className={`w-3 h-1 rounded-full ${
-                              isActive ? bgColors[ticker] : 'bg-gray-300'
-                            }`}
-                          ></div>
-                          <span className={isActive ? colors[ticker] : ''}>{ticker}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
               </div>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2 mb-4">
+              <button
+                onClick={() => setShowPnL(!showPnL)}
+                className={`flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-medium rounded-full transition-colors border ${
+                  showPnL
+                    ? 'bg-slate-900 text-white border-slate-900'
+                    : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'
+                }`}
+                title={showPnL ? '隱藏損益區域' : '顯示損益區域'}
+              >
+                {showPnL ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
+                <span>損益</span>
+              </button>
+
+              <div className="w-px h-5 bg-slate-200 mx-1"></div>
+
+              <div className="flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-medium rounded-full bg-white border border-slate-200 text-slate-500">
+                <span className="w-2 h-2 rounded-full bg-slate-400"></span>
+                <span>本金</span>
+              </div>
+              {['QQQ', 'VTI', 'VT', 'QLD', 'SOXX'].map((ticker) => {
+                const dotColors = {
+                  QQQ: 'bg-violet-500',
+                  VTI: 'bg-emerald-500',
+                  VT: 'bg-sky-500',
+                  QLD: 'bg-pink-500',
+                  SOXX: 'bg-cyan-500',
+                };
+                const isActive = visibleBenchmarks[ticker];
+                return (
+                  <button
+                    key={ticker}
+                    onClick={() => toggleBenchmark(ticker)}
+                    className={`flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-medium rounded-full transition-colors border ${
+                      isActive
+                        ? 'bg-slate-900 text-white border-slate-900'
+                        : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'
+                    }`}
+                  >
+                    <span
+                      className={`w-2 h-2 rounded-full ${
+                        isActive ? dotColors[ticker] : 'bg-slate-300'
+                      }`}
+                    ></span>
+                    <span>{ticker}</span>
+                  </button>
+                );
+              })}
             </div>
             <div className="h-[260px] sm:h-[350px] w-full">
               <ResponsiveContainer width="100%" height="100%">
@@ -1563,10 +1557,10 @@ export default function InvestmentTracker() {
                     type="monotone"
                     connectNulls
                     dataKey="MyValue"
-                    stroke="#f97316"
-                    strokeWidth={3}
-                    dot={{ r: 4, fill: '#f97316', strokeWidth: 2, stroke: '#fff' }}
-                    activeDot={{ r: 6 }}
+                    stroke="#0f172a"
+                    strokeWidth={2.5}
+                    dot={{ r: 3.5, fill: '#0f172a', strokeWidth: 2, stroke: '#fff' }}
+                    activeDot={{ r: 5 }}
                     name="MyValue"
                     isAnimationActive={false}
                   />
@@ -1576,30 +1570,35 @@ export default function InvestmentTracker() {
           </div>
         )}
         <div>
-          <h2 className="text-lg font-bold text-gray-800 mb-3 flex items-center gap-2">
-            <Target className="w-5 h-5 text-gray-600" /> 績效對決 (假如入金當下 All-in...)
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+          <div className="mb-4">
+            <h2 className="text-[11px] font-medium uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
+              <Target className="w-3.5 h-3.5" /> 績效對決
+            </h2>
+            <p className="text-sm font-medium text-slate-700 mt-0.5">
+              假如入金當下 All-in 各標的的理論市值
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
             <ComparisonCard
               symbol="QQQ"
               userTotalReturn={stats.userReturnUSD}
               benchmarkTotalReturn={stats.benchmarkReturns.qqq}
               benchmarkValue={stats.currentQQQValue}
-              color="bg-purple-500"
+              color="bg-violet-500"
             />
             <ComparisonCard
               symbol="VTI"
               userTotalReturn={stats.userReturnUSD}
               benchmarkTotalReturn={stats.benchmarkReturns.vti}
               benchmarkValue={stats.currentVTIValue}
-              color="bg-green-500"
+              color="bg-emerald-500"
             />
             <ComparisonCard
               symbol="VT"
               userTotalReturn={stats.userReturnUSD}
               benchmarkTotalReturn={stats.benchmarkReturns.vt}
               benchmarkValue={stats.currentVTValue}
-              color="bg-blue-500"
+              color="bg-sky-500"
             />
             <ComparisonCard
               symbol="QLD"
@@ -1617,96 +1616,105 @@ export default function InvestmentTracker() {
             />
           </div>
         </div>
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-          <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-            <h2 className="font-bold text-gray-700 flex items-center gap-2">
-              <Calendar className="w-5 h-5" /> 資金交易紀錄
-            </h2>
+        <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+          <div className="px-5 py-4 border-b border-slate-200 flex justify-between items-center">
+            <div>
+              <h2 className="text-[11px] font-medium uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
+                <Calendar className="w-3.5 h-3.5" /> 資金交易紀錄
+              </h2>
+              <p className="text-sm font-medium text-slate-700 mt-0.5">
+                {deposits.length} 筆紀錄
+              </p>
+            </div>
             <button
               onClick={openAddModal}
-              className="flex items-center gap-1 bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg text-sm font-medium transition-colors"
+              className="flex items-center gap-1.5 bg-slate-900 hover:bg-slate-800 text-white px-3.5 py-2 rounded-lg text-xs font-medium transition-colors"
             >
-              <PlusCircle className="w-4 h-4" /> 新增紀錄
+              <PlusCircle className="w-3.5 h-3.5" /> 新增紀錄
             </button>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-sm text-left">
-              <thead className="bg-gray-50 text-gray-500 border-b border-gray-100">
-                <tr>
-                  <th className="px-4 py-3 font-medium">日期</th>
-                  <th className="px-4 py-3 font-medium">類型 / 金額 (USD)</th>
+              <thead className="bg-slate-50 text-slate-500 border-b border-slate-200">
+                <tr className="text-[11px] uppercase tracking-wider">
+                  <th className="px-5 py-3 font-medium">日期</th>
+                  <th className="px-4 py-3 font-medium">類型 / 金額</th>
                   <th className="px-4 py-3 font-medium">匯率</th>
-                  <th className="px-4 py-3 font-medium hidden sm:table-cell">金額 (TWD)</th>
-                  <th className="px-4 py-3 font-medium hidden sm:table-cell">QQQ 當時價</th>
-                  <th className="px-4 py-3 font-medium hidden sm:table-cell">VTI 當時價</th>
-                  <th className="px-4 py-3 font-medium hidden sm:table-cell">VT 當時價</th>
-                  <th className="px-4 py-3 font-medium hidden sm:table-cell">QLD 當時價</th>
-                  <th className="px-4 py-3 font-medium hidden sm:table-cell">SOXX 當時價</th>
+                  <th className="px-4 py-3 font-medium hidden sm:table-cell">TWD</th>
+                  <th className="px-4 py-3 font-medium hidden sm:table-cell">QQQ</th>
+                  <th className="px-4 py-3 font-medium hidden sm:table-cell">VTI</th>
+                  <th className="px-4 py-3 font-medium hidden sm:table-cell">VT</th>
+                  <th className="px-4 py-3 font-medium hidden sm:table-cell">QLD</th>
+                  <th className="px-4 py-3 font-medium hidden sm:table-cell">SOXX</th>
                   <th className="px-4 py-3 font-medium text-right">操作</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
+              <tbody className="divide-y divide-slate-100">
                 {deposits.length === 0 ? (
                   <tr>
-                    <td colSpan="10" className="px-4 py-8 text-center text-gray-400">
-                      尚無紀錄，請點擊右上角新增
+                    <td colSpan="10" className="px-4 py-12 text-center text-slate-400 text-sm">
+                      尚無紀錄,點擊右上角新增
                     </td>
                   </tr>
                 ) : (
                   deposits.map((dep) => (
-                    <tr key={dep.id} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-4 py-3 font-medium text-gray-900">{dep.date}</td>
+                    <tr key={dep.id} className="hover:bg-slate-50/60 transition-colors">
+                      <td className="px-5 py-3 font-medium text-slate-900 tabular-nums">
+                        {dep.date}
+                      </td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">
                           <span
-                            className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                            className={`px-1.5 py-0.5 rounded text-[10px] font-medium tracking-wide ${
                               dep.amount < 0
-                                ? 'bg-red-100 text-red-700'
-                                : 'bg-green-100 text-green-700'
+                                ? 'bg-rose-50 text-rose-600 border border-rose-100'
+                                : 'bg-emerald-50 text-emerald-600 border border-emerald-100'
                             }`}
                           >
                             {dep.amount < 0 ? '出金' : '入金'}
                           </span>
-                          <span className="font-bold text-gray-800">
+                          <span className="font-semibold text-slate-900 tabular-nums">
                             ${(Math.abs(dep.amount) || 0).toLocaleString()}
                           </span>
                         </div>
                       </td>
-                      <td className="px-4 py-3 text-gray-600">{dep.exchangeRate || '-'}</td>
-                      <td className="px-4 py-3 text-gray-600 hidden sm:table-cell">
+                      <td className="px-4 py-3 text-slate-600 tabular-nums">
+                        {dep.exchangeRate || '-'}
+                      </td>
+                      <td className="px-4 py-3 text-slate-600 hidden sm:table-cell tabular-nums">
                         {dep.exchangeRate
                           ? `NT$${Math.round(
                               Math.abs(dep.amount) * dep.exchangeRate
                             ).toLocaleString()}`
                           : '-'}
                       </td>
-                      <td className="px-4 py-3 text-gray-600 hidden sm:table-cell">
-                        ${dep.qqqPrice}
+                      <td className="px-4 py-3 text-slate-600 hidden sm:table-cell tabular-nums">
+                        {dep.qqqPrice ? `$${dep.qqqPrice}` : '-'}
                       </td>
-                      <td className="px-4 py-3 text-gray-600 hidden sm:table-cell">
-                        ${dep.vtiPrice}
+                      <td className="px-4 py-3 text-slate-600 hidden sm:table-cell tabular-nums">
+                        {dep.vtiPrice ? `$${dep.vtiPrice}` : '-'}
                       </td>
-                      <td className="px-4 py-3 text-gray-600 hidden sm:table-cell">
-                        ${dep.vtPrice}
+                      <td className="px-4 py-3 text-slate-600 hidden sm:table-cell tabular-nums">
+                        {dep.vtPrice ? `$${dep.vtPrice}` : '-'}
                       </td>
-                      <td className="px-4 py-3 text-gray-600 hidden sm:table-cell">
-                        ${dep.qldPrice || '-'}
+                      <td className="px-4 py-3 text-slate-600 hidden sm:table-cell tabular-nums">
+                        {dep.qldPrice ? `$${dep.qldPrice}` : '-'}
                       </td>
-                      <td className="px-4 py-3 text-gray-600 hidden sm:table-cell">
-                        ${dep.soxxPrice || '-'}
+                      <td className="px-4 py-3 text-slate-600 hidden sm:table-cell tabular-nums">
+                        {dep.soxxPrice ? `$${dep.soxxPrice}` : '-'}
                       </td>
                       <td className="px-4 py-3 text-right">
                         <div className="flex items-center justify-end gap-1">
                           <button
                             onClick={() => openEditModal(dep)}
-                            className="text-gray-400 hover:text-blue-600 p-1 transition-colors"
+                            className="text-slate-400 hover:text-slate-900 p-1 transition-colors"
                             title="編輯"
                           >
                             <Edit className="w-4 h-4" />
                           </button>
                           <button
                             onClick={() => setDeleteId(dep.id)}
-                            className="text-gray-400 hover:text-red-500 p-1 transition-colors"
+                            className="text-slate-400 hover:text-rose-600 p-1 transition-colors"
                             title="刪除"
                           >
                             <Trash2 className="w-4 h-4" />
@@ -1751,12 +1759,15 @@ export default function InvestmentTracker() {
       />
 
       {showAddModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6 animate-fade-in relative overflow-hidden">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold text-gray-800">
-                {editingDepositId ? '編輯交易紀錄' : '新增交易紀錄'}
-              </h2>
+        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-2xl shadow-2xl shadow-slate-900/10 max-w-md w-full p-6 animate-fade-in relative overflow-hidden">
+            <div className="flex justify-between items-start mb-5">
+              <div>
+                <h2 className="text-lg font-semibold text-slate-900 tracking-tight">
+                  {editingDepositId ? '編輯交易紀錄' : '新增交易紀錄'}
+                </h2>
+                <p className="text-xs text-slate-500 mt-0.5">填入金額與當時的市場價格</p>
+              </div>
 
               <input
                 type="file"
@@ -1770,26 +1781,26 @@ export default function InvestmentTracker() {
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={isScanningImage}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-sm font-bold rounded-lg transition-colors border border-indigo-100 disabled:opacity-50"
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-slate-50 text-slate-700 text-xs font-medium rounded-lg transition-colors border border-slate-200 disabled:opacity-50"
               >
                 {isScanningImage ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
                 ) : (
-                  <ImagePlus className="w-4 h-4" />
+                  <ImagePlus className="w-3.5 h-3.5" />
                 )}
-                <span className="hidden sm:inline">✨ AI 掃描截圖</span>
+                <span className="hidden sm:inline">AI 掃描截圖</span>
               </button>
             </div>
 
             <form onSubmit={handleSaveDeposit} className="space-y-4 relative z-10">
-              <div className="flex gap-4 mb-2 p-1 bg-gray-100 rounded-lg w-fit">
+              <div className="flex gap-1 p-1 bg-slate-100 rounded-lg w-fit">
                 <button
                   type="button"
                   onClick={() => setNewDeposit({ ...newDeposit, type: 'deposit' })}
-                  className={`px-4 py-1.5 text-sm font-bold rounded-md transition-colors ${
+                  className={`px-4 py-1.5 text-xs font-medium rounded-md transition-colors ${
                     newDeposit.type === 'deposit'
-                      ? 'bg-white shadow text-green-600'
-                      : 'text-gray-500 hover:text-gray-700'
+                      ? 'bg-white shadow-sm text-emerald-600'
+                      : 'text-slate-500 hover:text-slate-700'
                   }`}
                 >
                   入金
@@ -1797,29 +1808,33 @@ export default function InvestmentTracker() {
                 <button
                   type="button"
                   onClick={() => setNewDeposit({ ...newDeposit, type: 'withdrawal' })}
-                  className={`px-4 py-1.5 text-sm font-bold rounded-md transition-colors ${
+                  className={`px-4 py-1.5 text-xs font-medium rounded-md transition-colors ${
                     newDeposit.type === 'withdrawal'
-                      ? 'bg-white shadow text-red-600'
-                      : 'text-gray-500 hover:text-gray-700'
+                      ? 'bg-white shadow-sm text-rose-600'
+                      : 'text-slate-500 hover:text-slate-700'
                   }`}
                 >
                   出金
                 </button>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-medium text-gray-500 mb-1">日期</label>
+                  <label className="block text-[11px] font-medium uppercase tracking-wider text-slate-500 mb-1.5">
+                    日期
+                  </label>
                   <input
                     type="date"
                     required
                     value={newDeposit.date}
                     onChange={(e) => setNewDeposit({ ...newDeposit, date: e.target.value })}
-                    className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500 outline-none"
+                    className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm tabular-nums focus:ring-2 focus:ring-slate-900/10 focus:border-slate-400 outline-none transition"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-500 mb-1">金額 (USD)</label>
+                  <label className="block text-[11px] font-medium uppercase tracking-wider text-slate-500 mb-1.5">
+                    金額 (USD)
+                  </label>
                   <input
                     type="number"
                     required
@@ -1828,40 +1843,40 @@ export default function InvestmentTracker() {
                     placeholder="1000"
                     value={newDeposit.amount}
                     onChange={(e) => setNewDeposit({ ...newDeposit, amount: e.target.value })}
-                    className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500 outline-none"
+                    className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm tabular-nums focus:ring-2 focus:ring-slate-900/10 focus:border-slate-400 outline-none transition"
                   />
                 </div>
               </div>
 
-              <div className="bg-blue-50 p-3 rounded-lg border border-blue-100">
-                <div className="flex justify-between items-center mb-2">
-                  <p className="text-xs text-blue-800 font-medium flex items-center gap-1">
-                    <Search className="w-3 h-3" /> 市場數據 (可自動抓取)
+              <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                <div className="flex justify-between items-center mb-3">
+                  <p className="text-[11px] font-medium uppercase tracking-wider text-slate-500 flex items-center gap-1">
+                    <Search className="w-3 h-3" /> 市場數據
                   </p>
                   <button
                     type="button"
                     onClick={handleAutoFillPrices}
                     disabled={isFetchingPrices || !newDeposit.date}
-                    className="text-xs px-2 py-1 rounded bg-blue-600 text-white flex items-center gap-1 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    className="text-[11px] px-2.5 py-1 rounded-md bg-slate-900 text-white flex items-center gap-1 hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
                     {isFetchingPrices ? (
                       <Loader2 className="w-3 h-3 animate-spin" />
                     ) : (
                       <Zap className="w-3 h-3" />
                     )}
-                    {isFetchingPrices ? '搜尋中...' : '智慧填入 (優先查 CSV)'}
+                    {isFetchingPrices ? '搜尋中' : '智慧填入'}
                   </button>
                 </div>
 
-                <div className="space-y-3">
+                <div className="space-y-2.5">
                   <div className="flex items-center gap-2">
-                    <label className="w-12 text-sm font-bold text-gray-600">匯率</label>
+                    <label className="w-12 text-xs font-medium text-slate-600">匯率</label>
                     <input
                       type="number"
                       required
                       step="0.01"
                       placeholder="USD/TWD"
-                      className="flex-1 border border-gray-300 rounded-md p-1.5 text-sm"
+                      className="flex-1 border border-slate-200 rounded-md px-2.5 py-1.5 text-sm bg-white tabular-nums focus:ring-2 focus:ring-slate-900/10 focus:border-slate-400 outline-none transition"
                       value={newDeposit.exchangeRate}
                       onChange={(e) =>
                         setNewDeposit({ ...newDeposit, exchangeRate: e.target.value })
@@ -1871,13 +1886,13 @@ export default function InvestmentTracker() {
                   </div>
                   {['QQQ', 'VTI', 'VT', 'QLD', 'SOXX'].map((ticker) => (
                     <div key={ticker} className="flex items-center gap-2">
-                      <label className="w-12 text-sm font-bold text-gray-600">{ticker}</label>
+                      <label className="w-12 text-xs font-medium text-slate-600">{ticker}</label>
                       <input
                         type="number"
                         required
                         step="0.01"
                         placeholder="0.00"
-                        className="flex-1 border border-gray-300 rounded-md p-1.5 text-sm"
+                        className="flex-1 border border-slate-200 rounded-md px-2.5 py-1.5 text-sm bg-white tabular-nums focus:ring-2 focus:ring-slate-900/10 focus:border-slate-400 outline-none transition"
                         value={newDeposit[`${ticker.toLowerCase()}Price`]}
                         onChange={(e) =>
                           setNewDeposit({
@@ -1889,7 +1904,7 @@ export default function InvestmentTracker() {
                       <button
                         type="button"
                         onClick={() => openSearch(ticker, newDeposit.date)}
-                        className="text-gray-400 hover:text-blue-600 p-1"
+                        className="text-slate-400 hover:text-slate-900 p-1 transition-colors"
                         title="手動 Google 搜尋"
                       >
                         <Search className="w-4 h-4" />
@@ -1899,17 +1914,17 @@ export default function InvestmentTracker() {
                 </div>
               </div>
 
-              <div className="flex gap-3 pt-2">
+              <div className="flex gap-2 pt-1">
                 <button
                   type="button"
                   onClick={() => setShowAddModal(false)}
-                  className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 rounded-lg font-medium"
+                  className="flex-1 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 py-2.5 rounded-lg text-sm font-medium transition-colors"
                 >
                   取消
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg font-medium shadow-sm"
+                  className="flex-1 bg-slate-900 hover:bg-slate-800 text-white py-2.5 rounded-lg text-sm font-medium transition-colors"
                 >
                   {editingDepositId ? '儲存修改' : '新增'}
                 </button>
@@ -1920,16 +1935,19 @@ export default function InvestmentTracker() {
       )}
 
       {showSettingsModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
-            <h2 className="text-xl font-bold mb-4 text-gray-800 flex items-center gap-2">
-              <RefreshCw className="w-5 h-5 text-gray-600" /> 更新市場與資產現值
-            </h2>
+        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-2xl shadow-2xl shadow-slate-900/10 max-w-md w-full p-6 animate-fade-in">
+            <div className="mb-5">
+              <h2 className="text-lg font-semibold text-slate-900 tracking-tight flex items-center gap-2">
+                <RefreshCw className="w-4 h-4 text-slate-500" /> 更新市場與資產現值
+              </h2>
+              <p className="text-xs text-slate-500 mt-0.5">同步當前資產與基準價</p>
+            </div>
             <form onSubmit={handleUpdateSettings} className="space-y-5">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-1">
-                    目前投資總值 (USD)
+                  <label className="block text-[11px] font-medium uppercase tracking-wider text-slate-500 mb-1.5">
+                    投資總值 (USD)
                   </label>
                   <input
                     type="number"
@@ -1939,12 +1957,12 @@ export default function InvestmentTracker() {
                     onChange={(e) =>
                       setTempSettings({ ...tempSettings, currentPortfolioValue: e.target.value })
                     }
-                    className="w-full border border-gray-300 rounded-lg py-2 pl-3 pr-3 focus:ring-2 focus:ring-blue-500 outline-none font-bold text-lg"
+                    className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-base font-semibold tabular-nums focus:ring-2 focus:ring-slate-900/10 focus:border-slate-400 outline-none transition"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-1">
-                    目前匯率 (USD/TWD)
+                  <label className="block text-[11px] font-medium uppercase tracking-wider text-slate-500 mb-1.5">
+                    匯率 (USD/TWD)
                   </label>
                   <input
                     type="number"
@@ -1954,14 +1972,14 @@ export default function InvestmentTracker() {
                     onChange={(e) =>
                       setTempSettings({ ...tempSettings, currentExchangeRate: e.target.value })
                     }
-                    className="w-full border border-gray-300 rounded-lg py-2 pl-3 pr-3 focus:ring-2 focus:ring-blue-500 outline-none font-bold text-lg"
+                    className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-base font-semibold tabular-nums focus:ring-2 focus:ring-slate-900/10 focus:border-slate-400 outline-none transition"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-bold text-gray-700 mb-1">
-                  財富自由目標金額 (USD)
+                <label className="block text-[11px] font-medium uppercase tracking-wider text-slate-500 mb-1.5">
+                  財富自由目標 (USD)
                 </label>
                 <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
                   <input
@@ -1972,10 +1990,10 @@ export default function InvestmentTracker() {
                     onChange={(e) =>
                       setTempSettings({ ...tempSettings, targetAmountUSD: e.target.value })
                     }
-                    className="w-full border border-gray-300 rounded-lg py-2 pl-3 pr-3 focus:ring-2 focus:ring-blue-500 outline-none font-bold text-lg"
+                    className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-base font-semibold tabular-nums focus:ring-2 focus:ring-slate-900/10 focus:border-slate-400 outline-none transition"
                   />
-                  <span className="text-xs text-gray-500 whitespace-nowrap bg-gray-50 px-2 py-1 rounded">
-                    約 NT${' '}
+                  <span className="text-[11px] text-slate-500 whitespace-nowrap bg-slate-50 border border-slate-200 px-2.5 py-1.5 rounded-md tabular-nums">
+                    NT$
                     {Math.round(
                       (tempSettings.targetAmountUSD || 1000000) *
                         (tempSettings.currentExchangeRate || 30)
@@ -1984,15 +2002,15 @@ export default function InvestmentTracker() {
                 </div>
               </div>
 
-              <div className="border-t border-gray-100 pt-4">
-                <label className="block text-sm font-bold text-gray-700 mb-3">
-                  今日市場價格 (用於計算基準價值)
+              <div className="border-t border-slate-100 pt-4">
+                <label className="block text-[11px] font-medium uppercase tracking-wider text-slate-500 mb-3">
+                  今日市場價格
                 </label>
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2">
                   {['QQQ', 'VTI', 'VT', 'QLD', 'SOXX'].map((ticker) => (
                     <div key={ticker}>
-                      <label className="block text-xs font-medium text-gray-500 mb-1">
-                        {ticker} 現價
+                      <label className="block text-[10px] font-medium text-slate-500 mb-1">
+                        {ticker}
                       </label>
                       <input
                         type="number"
@@ -2005,7 +2023,7 @@ export default function InvestmentTracker() {
                             [`current${ticker}`]: e.target.value,
                           })
                         }
-                        className="w-full border border-gray-300 rounded-lg p-2 text-sm"
+                        className="w-full border border-slate-200 rounded-md px-2 py-1.5 text-sm tabular-nums focus:ring-2 focus:ring-slate-900/10 focus:border-slate-400 outline-none transition"
                       />
                     </div>
                   ))}
@@ -2015,23 +2033,23 @@ export default function InvestmentTracker() {
                     href="https://finance.yahoo.com/"
                     target="_blank"
                     rel="noreferrer"
-                    className="text-xs text-blue-500 hover:underline flex items-center justify-end gap-1"
+                    className="text-[11px] text-slate-500 hover:text-slate-900 inline-flex items-center gap-1 transition-colors"
                   >
-                    前往 Yahoo Finance 查看 <ExternalLink className="w-3 h-3" />
+                    Yahoo Finance <ExternalLink className="w-3 h-3" />
                   </a>
                 </div>
               </div>
-              <div className="flex gap-3 pt-2">
+              <div className="flex gap-2 pt-1">
                 <button
                   type="button"
                   onClick={() => setShowSettingsModal(false)}
-                  className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 rounded-lg font-medium"
+                  className="flex-1 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 py-2.5 rounded-lg text-sm font-medium transition-colors"
                 >
                   取消
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg font-medium shadow-sm"
+                  className="flex-1 bg-slate-900 hover:bg-slate-800 text-white py-2.5 rounded-lg text-sm font-medium transition-colors"
                 >
                   儲存更新
                 </button>

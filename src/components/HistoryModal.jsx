@@ -84,32 +84,34 @@ export default function HistoryModal({ isOpen, onClose, history, onAdd, onUpdate
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 backdrop-blur-sm">
-      <div className="bg-white rounded-xl shadow-xl max-w-md w-full flex flex-col max-h-[85vh]">
-        <div className="p-5 border-b border-gray-100 flex justify-between items-center">
-          <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
-            <History className="w-5 h-5 text-gray-600" />
-            歷史資產市值紀錄
-          </h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
-            <X className="w-5 h-5" />
+    <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+      <div className="bg-white rounded-2xl shadow-2xl shadow-slate-900/10 max-w-md w-full flex flex-col max-h-[85vh] animate-fade-in">
+        <div className="px-5 py-4 border-b border-slate-200 flex justify-between items-start">
+          <div>
+            <h2 className="text-lg font-semibold text-slate-900 tracking-tight flex items-center gap-2">
+              <History className="w-4 h-4 text-slate-500" />
+              歷史資產市值
+            </h2>
+            <p className="text-xs text-slate-500 mt-0.5">紀錄過去時間點的總資產</p>
+          </div>
+          <button
+            onClick={onClose}
+            className="text-slate-400 hover:text-slate-900 transition-colors p-1 rounded-full hover:bg-slate-100"
+          >
+            <X className="w-4 h-4" />
           </button>
         </div>
 
         <div className="p-5 overflow-y-auto flex-1">
-          <p className="text-sm text-gray-500 mb-4">
-            請輸入過去每個月底（或特定時間點）您的總資產價值，備註可顯示於圖表上。
-          </p>
-
           <form
             onSubmit={handleSubmit}
-            className="bg-gray-50 p-4 rounded-lg border border-gray-200 mb-6"
+            className="bg-slate-50 p-4 rounded-xl border border-slate-200 mb-5"
           >
             <div className="flex gap-2 mb-2">
               <input
                 type="date"
                 required
-                className="border border-gray-300 rounded-lg px-3 py-2 text-sm flex-1 outline-none focus:ring-2 focus:ring-blue-500"
+                className="border border-slate-200 rounded-lg px-3 py-2 text-sm flex-1 bg-white tabular-nums focus:ring-2 focus:ring-slate-900/10 focus:border-slate-400 outline-none transition"
                 value={newDate}
                 onChange={(e) => setNewDate(e.target.value)}
               />
@@ -117,7 +119,7 @@ export default function HistoryModal({ isOpen, onClose, history, onAdd, onUpdate
                 type="number"
                 required
                 placeholder="總市值 (USD)"
-                className="border border-gray-300 rounded-lg px-3 py-2 text-sm w-32 outline-none focus:ring-2 focus:ring-blue-500"
+                className="border border-slate-200 rounded-lg px-3 py-2 text-sm w-36 bg-white tabular-nums focus:ring-2 focus:ring-slate-900/10 focus:border-slate-400 outline-none transition"
                 value={newValue}
                 onChange={(e) => setNewValue(e.target.value)}
               />
@@ -125,8 +127,8 @@ export default function HistoryModal({ isOpen, onClose, history, onAdd, onUpdate
             <div className="flex gap-2 mb-3 relative">
               <input
                 type="text"
-                placeholder="備註 (例：領獎金)"
-                className="border border-gray-300 rounded-lg px-3 py-2 text-sm flex-1 outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="備註 (例:領獎金)"
+                className="border border-slate-200 rounded-lg pl-3 pr-20 py-2 text-sm flex-1 bg-white focus:ring-2 focus:ring-slate-900/10 focus:border-slate-400 outline-none transition"
                 value={newNote}
                 onChange={(e) => setNewNote(e.target.value)}
               />
@@ -134,7 +136,7 @@ export default function HistoryModal({ isOpen, onClose, history, onAdd, onUpdate
                 type="button"
                 onClick={handleGenerateNote}
                 disabled={!newDate || isGeneratingNote}
-                className="absolute right-1 top-1 bottom-1 px-2 flex items-center gap-1 bg-purple-50 hover:bg-purple-100 text-purple-600 rounded text-xs font-medium transition-colors disabled:opacity-50"
+                className="absolute right-1.5 top-1.5 bottom-1.5 px-2 flex items-center gap-1 bg-slate-900 hover:bg-slate-800 text-white rounded-md text-[11px] font-medium transition-colors disabled:opacity-40"
                 title="AI 自動產生當日市場備註"
               >
                 {isGeneratingNote ? (
@@ -148,9 +150,7 @@ export default function HistoryModal({ isOpen, onClose, history, onAdd, onUpdate
             <div className="flex gap-2">
               <button
                 type="submit"
-                className={`flex-1 text-white rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
-                  editingId ? 'bg-orange-500 hover:bg-orange-600' : 'bg-blue-600 hover:bg-blue-700'
-                }`}
+                className="flex-1 bg-slate-900 hover:bg-slate-800 text-white rounded-lg px-3 py-2 text-sm font-medium transition-colors"
               >
                 {editingId ? '更新紀錄' : '新增紀錄'}
               </button>
@@ -158,7 +158,7 @@ export default function HistoryModal({ isOpen, onClose, history, onAdd, onUpdate
                 <button
                   type="button"
                   onClick={handleCancelEdit}
-                  className="bg-gray-200 text-gray-700 rounded-lg px-3 py-2 text-sm font-medium hover:bg-gray-300"
+                  className="bg-white border border-slate-200 text-slate-700 rounded-lg px-3 py-2 text-sm font-medium hover:bg-slate-50 transition-colors"
                 >
                   取消
                 </button>
@@ -166,46 +166,48 @@ export default function HistoryModal({ isOpen, onClose, history, onAdd, onUpdate
             </div>
           </form>
 
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             {history.length === 0 ? (
-              <div className="text-center py-8 text-gray-400 bg-gray-50 rounded-lg border border-dashed border-gray-200">
+              <div className="text-center py-8 text-slate-400 text-sm bg-slate-50 rounded-xl border border-dashed border-slate-200">
                 尚無歷史紀錄
               </div>
             ) : (
               history.map((item) => (
                 <div
                   key={item.id}
-                  className={`flex justify-between items-center p-3 rounded-lg transition-all group border ${
+                  className={`flex justify-between items-center px-3 py-2.5 rounded-lg transition-all group border ${
                     editingId === item.id
-                      ? 'bg-blue-50 border-blue-200 ring-1 ring-blue-200'
-                      : 'bg-white border-gray-100 hover:bg-gray-50'
+                      ? 'bg-slate-50 border-slate-300'
+                      : 'bg-white border-slate-100 hover:border-slate-200'
                   }`}
                 >
                   <div className="flex flex-col gap-0.5">
-                    <div className="flex items-center gap-3">
-                      <span className="font-medium text-gray-700 text-sm">{item.date}</span>
-                      <span className="text-gray-300 text-xs">→</span>
-                      <span className="font-bold text-gray-900 text-sm">
+                    <div className="flex items-center gap-2.5">
+                      <span className="font-medium text-slate-600 text-sm tabular-nums">
+                        {item.date}
+                      </span>
+                      <span className="text-slate-300 text-xs">·</span>
+                      <span className="font-semibold text-slate-900 text-sm tabular-nums">
                         ${item.value.toLocaleString()}
                       </span>
                     </div>
                     {item.note && (
-                      <span className="text-xs text-orange-600 flex items-center gap-1">
-                        <StickyNote className="w-3 h-3" /> {item.note}
+                      <span className="text-[11px] text-slate-500 flex items-center gap-1">
+                        <StickyNote className="w-2.5 h-2.5 text-slate-400" /> {item.note}
                       </span>
                     )}
                   </div>
-                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="flex items-center gap-1 sm:opacity-0 group-hover:opacity-100 transition-opacity">
                     <button
                       onClick={() => handleEditClick(item)}
-                      className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-md"
+                      className="p-1.5 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-md transition-colors"
                       title="編輯"
                     >
                       <Edit className="w-3.5 h-3.5" />
                     </button>
                     <button
                       onClick={() => onDelete(item.id)}
-                      className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-md"
+                      className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-md transition-colors"
                       title="刪除"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
