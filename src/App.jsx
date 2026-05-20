@@ -61,7 +61,11 @@ import {
 import { auth, db, appId, googleProvider, initialAuthToken } from './lib/firebase.js';
 import { extractJSON, xirr } from './lib/helpers.js';
 import { apiKey } from './lib/gemini.js';
-import { fetchLatestPrices, fetchHistoricalPrices } from './lib/priceFetcher.js';
+import {
+  fetchLatestPrices,
+  fetchHistoricalPrices,
+  fetchYahooLatest,
+} from './lib/priceFetcher.js';
 
 import Toast from './components/Toast.jsx';
 import StatCard from './components/StatCard.jsx';
@@ -409,12 +413,23 @@ export default function InvestmentTracker() {
     const today = new Date().toISOString().split('T')[0];
     const isTodayOrFuture = newDeposit.date >= today;
 
+    // For TODAY/FUTURE: try Yahoo Finance first — it returns the actual
+    // unadjusted market close that matches what brokers / Google Finance
+    // show. Stooq is dividend-adjusted; /q/l/ can hold an intraday last
+    // price; Gemini's google_search often grounds on Stooq anyway.
     // For PAST dates: use local marketData (Stooq historical CSV).
-    // For TODAY/FUTURE: skip local cache and force an AI search for the
-    // official close — /q/l/ and marketSettings.currentX can hold an
-    // intraday last price (e.g. $717.91 when the official close is
-    // $701.53), which is the wrong number for a "當時價" field.
-    if (!isTodayOrFuture) {
+    if (isTodayOrFuture) {
+      try {
+        const yahoo = await fetchYahooLatest(['QQQ', 'VTI', 'VT', 'QLD', 'SOXX']);
+        if (yahoo.QQQ) localPrices.qqq = yahoo.QQQ.close;
+        if (yahoo.VTI) localPrices.vti = yahoo.VTI.close;
+        if (yahoo.VT) localPrices.vt = yahoo.VT.close;
+        if (yahoo.QLD) localPrices.qld = yahoo.QLD.close;
+        if (yahoo.SOXX) localPrices.soxx = yahoo.SOXX.close;
+      } catch (e) {
+        console.warn('[autoFill] Yahoo Finance failed, will fall back to AI:', e.message);
+      }
+    } else {
       const findLocalPrice = (ticker) => {
         const data = marketData[ticker];
         if (!data || data.length === 0) return null;
@@ -430,19 +445,18 @@ export default function InvestmentTracker() {
       localPrices.vt = findLocalPrice('VT');
       localPrices.qld = findLocalPrice('QLD');
       localPrices.soxx = findLocalPrice('SOXX');
-
-      setNewDeposit((prev) => ({
-        ...prev,
-        qqqPrice: localPrices.qqq || prev.qqqPrice,
-        vtiPrice: localPrices.vti || prev.vtiPrice,
-        vtPrice: localPrices.vt || prev.vtPrice,
-        qldPrice: localPrices.qld || prev.qldPrice,
-        soxxPrice: localPrices.soxx || prev.soxxPrice,
-      }));
     }
 
+    setNewDeposit((prev) => ({
+      ...prev,
+      qqqPrice: localPrices.qqq || prev.qqqPrice,
+      vtiPrice: localPrices.vti || prev.vtiPrice,
+      vtPrice: localPrices.vt || prev.vtPrice,
+      qldPrice: localPrices.qld || prev.qldPrice,
+      soxxPrice: localPrices.soxx || prev.soxxPrice,
+    }));
+
     const missingStocks =
-      isTodayOrFuture ||
       !localPrices.qqq ||
       !localPrices.vti ||
       !localPrices.vt ||
@@ -453,8 +467,14 @@ export default function InvestmentTracker() {
     if (missingStocks || missingRate) {
       try {
         const prompt = `
-            Find the official daily CLOSING PRICES (the last regular-session trade at 4:00 PM ET, as published by the exchange) for these US ETFs on ${newDeposit.date}.
-            Do NOT return the high, low, open, intraday last, pre-market, or after-hours price.
+            Find the official daily CLOSING PRICES for these US ETFs on ${newDeposit.date}.
+
+            DATA SOURCE RULES:
+            - Use Yahoo Finance, Google Finance, or Nasdaq.com as your authoritative source.
+            - Report the unadjusted "Close" value, NOT the "Adj Close" / adjusted close.
+            - Do NOT use Stooq.com or Investing.com (their default data is dividend-adjusted and differs from the real market close).
+            - Do NOT report the high, low, open, intraday last, pre-market, or after-hours price.
+            - The closing price is the last regular-session trade at 4:00 PM ET, as published by the exchange.
 
             I have these values from local data:
             QQQ: ${localPrices.qqq || 'MISSING'}
@@ -464,7 +484,7 @@ export default function InvestmentTracker() {
             SOXX: ${localPrices.soxx || 'MISSING'}
             Rate: ${newDeposit.exchangeRate || 'MISSING'}
 
-            Please find the MISSING closing prices for ${newDeposit.date}.
+            Please find the MISSING closing prices on ${newDeposit.date}.
             For Exchange Rate (USD to TWD), ALWAYS find it.
 
             Rules:
@@ -511,6 +531,18 @@ export default function InvestmentTracker() {
             soxxPrice: aiPrices.soxx || prev.soxxPrice,
             exchangeRate: aiPrices.rate || prev.exchangeRate,
           }));
+          if (isTodayOrFuture) {
+            const parts = [];
+            if (aiPrices.qqq) parts.push(`QQQ ${aiPrices.qqq}`);
+            if (aiPrices.vti) parts.push(`VTI ${aiPrices.vti}`);
+            if (aiPrices.vt) parts.push(`VT ${aiPrices.vt}`);
+            if (aiPrices.qld) parts.push(`QLD ${aiPrices.qld}`);
+            if (aiPrices.soxx) parts.push(`SOXX ${aiPrices.soxx}`);
+            setNotification({
+              type: 'success',
+              message: `AI fallback: ${parts.join(' / ')}`,
+            });
+          }
         } else {
           setNotification({ type: 'error', message: 'AI 回應格式錯誤' });
         }
