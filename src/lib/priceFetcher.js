@@ -83,6 +83,15 @@ const fetchFromGemini = async () => {
 };
 
 export const fetchLatestPrices = async () => {
+  // Yahoo first: returns the unadjusted regular-session close, which is
+  // what brokers / Google Finance show. Stooq's /q/l/ can hold an intraday
+  // last price and its data is dividend-adjusted; Gemini's google_search
+  // often grounds on Stooq too.
+  try {
+    return await fetchYahooLatest(['QQQ', 'VTI', 'VT', 'QLD', 'SOXX']);
+  } catch (e) {
+    console.warn('[priceFetcher] Yahoo failed, trying Stooq:', e.message);
+  }
   try {
     return await fetchFromStooq();
   } catch (e) {
