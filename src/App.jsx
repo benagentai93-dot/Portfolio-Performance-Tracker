@@ -108,6 +108,7 @@ export default function InvestmentTracker() {
   const [isFetchingPrices, setIsFetchingPrices] = useState(false);
   const [isScanningImage, setIsScanningImage] = useState(false);
   const [isBackfillingTicker, setIsBackfillingTicker] = useState(null);
+  const autoBootstrappedRef = useRef(false);
   const fileInputRef = useRef(null);
 
   const [deleteId, setDeleteId] = useState(null);
@@ -947,8 +948,13 @@ export default function InvestmentTracker() {
     }
   };
 
-  const handleBackfillTicker = async (ticker) => {
-    if (!user) return;
+  const depositsRef = useRef(deposits);
+  useEffect(() => {
+    depositsRef.current = deposits;
+  }, [deposits]);
+
+  const runBackfill = async (ticker, { silent = false } = {}) => {
+    if (!user) return { skipped: 0, updated: 0, count: 0 };
     const priceField = `${ticker.toLowerCase()}Price`;
     setIsBackfillingTicker(ticker);
     try {
@@ -967,7 +973,7 @@ export default function InvestmentTracker() {
         return null;
       };
 
-      const candidates = deposits.filter(
+      const candidates = depositsRef.current.filter(
         (d) => !d[priceField] || parseFloat(d[priceField]) <= 0
       );
       let updated = 0;
@@ -985,20 +991,94 @@ export default function InvestmentTracker() {
       });
       if (updated > 0) await batch.commit();
 
-      const skipMsg = skipped > 0 ? `、跳過 ${skipped} 筆 (日期早於 ${ticker} 上市)` : '';
-      setNotification({
-        type: 'success',
-        message: `${ticker} 歷史 ${history.length} 筆寫入完成，補齊 ${updated} 筆交易紀錄${skipMsg}。`,
-      });
+      if (!silent) {
+        const skipMsg = skipped > 0 ? `、跳過 ${skipped} 筆 (日期早於 ${ticker} 上市)` : '';
+        setNotification({
+          type: 'success',
+          message: `${ticker} 歷史 ${history.length} 筆寫入完成,補齊 ${updated} 筆交易紀錄${skipMsg}。`,
+        });
+      }
+      return { count: history.length, updated, skipped };
     } catch (err) {
       console.error(`Backfill ${ticker} error:`, err);
-      setNotification({
-        type: 'error',
-        message: `${ticker} 補齊失敗：${err.message}`,
-      });
+      if (!silent) {
+        setNotification({
+          type: 'error',
+          message: `${ticker} 補齊失敗:${err.message}`,
+        });
+      }
+      throw err;
     } finally {
       setIsBackfillingTicker(null);
     }
+  };
+
+  const handleBackfillTicker = (ticker) => runBackfill(ticker);
+
+  useEffect(() => {
+    if (!user || loading || autoBootstrappedRef.current) return;
+    const tickers = ['QQQ', 'VTI', 'VT', 'QLD', 'SOXX'];
+    const missing = tickers.filter(
+      (t) => !marketData[t] || marketData[t].length === 0
+    );
+    if (missing.length === 0) return;
+
+    autoBootstrappedRef.current = true;
+
+    (async () => {
+      setNotification({
+        type: 'success',
+        message: `偵測到 ${missing.length} 個標的尚無歷史價,自動補齊中...`,
+      });
+      let success = 0;
+      let totalUpdated = 0;
+      const failed = [];
+      for (const t of missing) {
+        try {
+          const r = await runBackfill(t, { silent: true });
+          success++;
+          totalUpdated += r.updated;
+        } catch {
+          failed.push(t);
+        }
+      }
+      setNotification({
+        type: failed.length === 0 ? 'success' : 'error',
+        message:
+          failed.length === 0
+            ? `自動補齊完成,${success} 個標的、補上 ${totalUpdated} 筆舊紀錄`
+            : `自動補齊 ${success}/${missing.length},失敗:${failed.join(', ')}`,
+      });
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, loading, marketData]);
+
+  const handleBackfillAll = async () => {
+    if (!user || isBackfillingTicker) return;
+    const tickers = ['QQQ', 'VTI', 'VT', 'QLD', 'SOXX'];
+    setNotification({
+      type: 'success',
+      message: `開始補齊全部 ${tickers.length} 個標的的歷史股價...`,
+    });
+    let success = 0;
+    let totalUpdated = 0;
+    const failed = [];
+    for (const t of tickers) {
+      try {
+        const r = await runBackfill(t, { silent: true });
+        success++;
+        totalUpdated += r.updated;
+      } catch {
+        failed.push(t);
+      }
+    }
+    setNotification({
+      type: failed.length === 0 ? 'success' : 'error',
+      message:
+        failed.length === 0
+          ? `全部補齊完成,共補上 ${totalUpdated} 筆舊紀錄當時價`
+          : `補齊完成 ${success}/${tickers.length},失敗:${failed.join(', ')}`,
+    });
   };
 
   const executeRestoreData = async () => {
@@ -1755,6 +1835,7 @@ export default function InvestmentTracker() {
         }}
         onUploadMarketData={handleUploadMarketData}
         onBackfillTicker={handleBackfillTicker}
+        onBackfillAll={handleBackfillAll}
         isBackfillingTicker={isBackfillingTicker}
       />
 
