@@ -104,6 +104,55 @@ const fetchCsv = async (url) => {
   return text;
 };
 
+// Fetch latest unadjusted close prices from Yahoo Finance via CORS proxies.
+// Yahoo's v8 chart endpoint returns the actual market close (not the dividend-
+// adjusted one), which matches what brokers and Google Finance show.
+//
+// `tickers` is an array of US ETF symbols; we fetch one URL per ticker in
+// parallel (Yahoo's v8 endpoint is single-symbol). For each ticker we try
+// direct first, then each CORS proxy. Returns { TICKER: { date, close } }.
+// Throws if all attempts for at least one required ticker fail.
+export const fetchYahooLatest = async (tickers) => {
+  const fetchOne = async (ticker) => {
+    const yahooUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${ticker}?interval=1d&range=5d`;
+    const attempts = [yahooUrl, ...CORS_PROXIES.map((p) => p(yahooUrl))];
+    for (const url of attempts) {
+      try {
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        const result = data?.chart?.result?.[0];
+        if (!result) throw new Error('no chart result');
+        const closes = result?.indicators?.quote?.[0]?.close;
+        const timestamps = result?.timestamp;
+        if (!closes?.length || !timestamps?.length) throw new Error('no data');
+        // Last non-null close (today's may be null if market hasn't closed)
+        let lastIdx = closes.length - 1;
+        while (lastIdx >= 0 && (closes[lastIdx] == null || !Number.isFinite(closes[lastIdx]))) {
+          lastIdx--;
+        }
+        if (lastIdx < 0) throw new Error('no valid close');
+        const close = closes[lastIdx];
+        const date = new Date(timestamps[lastIdx] * 1000).toISOString().split('T')[0];
+        return { ticker, entry: { date, close } };
+      } catch (e) {
+        console.warn(`[Yahoo] ${ticker} fetch failed for ${url.slice(0, 80)}...: ${e.message}`);
+      }
+    }
+    return { ticker, entry: null };
+  };
+
+  const results = await Promise.all(tickers.map(fetchOne));
+  const out = {};
+  for (const { ticker, entry } of results) {
+    if (entry) out[ticker] = entry;
+  }
+  if (Object.keys(out).length === 0) {
+    throw new Error('Yahoo returned no prices (all tickers failed)');
+  }
+  return out;
+};
+
 export const fetchHistoricalPrices = async (ticker) => {
   const stooqUrl = `https://stooq.com/q/d/l/?s=${ticker.toLowerCase()}.us&i=d`;
   const attempts = [stooqUrl, ...CORS_PROXIES.map((p) => p(stooqUrl))];
