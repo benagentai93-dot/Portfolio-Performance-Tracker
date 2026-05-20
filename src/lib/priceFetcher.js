@@ -162,7 +162,50 @@ export const fetchYahooLatest = async (tickers) => {
   return out;
 };
 
+// Fetch full daily historical (unadjusted close) for a single ticker from
+// Yahoo Finance via CORS proxies. Returns [{date: 'YYYY-MM-DD', close: number}]
+// sorted ascending. Same field choice as fetchYahooLatest: indicators.quote[0]
+// .close, NOT adjclose.
+const fetchYahooHistorical = async (ticker) => {
+  const yahooUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${ticker}?interval=1d&period1=0&period2=9999999999`;
+  const attempts = [yahooUrl, ...CORS_PROXIES.map((p) => p(yahooUrl))];
+  let lastErr = null;
+  for (const url of attempts) {
+    try {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      const result = data?.chart?.result?.[0];
+      if (!result) throw new Error('no chart result');
+      const closes = result?.indicators?.quote?.[0]?.close;
+      const timestamps = result?.timestamp;
+      if (!closes?.length || !timestamps?.length) throw new Error('no data');
+      const points = [];
+      for (let i = 0; i < timestamps.length; i++) {
+        const close = closes[i];
+        if (!Number.isFinite(close)) continue;
+        const date = new Date(timestamps[i] * 1000).toISOString().split('T')[0];
+        points.push({ date, close });
+      }
+      if (points.length === 0) throw new Error('no valid closes');
+      points.sort((a, b) => a.date.localeCompare(b.date));
+      return points;
+    } catch (e) {
+      lastErr = e;
+      console.warn(`[Yahoo history] ${ticker} fetch failed for ${url.slice(0, 80)}...: ${e.message}`);
+    }
+  }
+  throw lastErr || new Error('all yahoo historical attempts failed');
+};
+
 export const fetchHistoricalPrices = async (ticker) => {
+  // Yahoo first: unadjusted close, matches Google Finance / brokers.
+  try {
+    return await fetchYahooHistorical(ticker);
+  } catch (e) {
+    console.warn(`[priceFetcher] Yahoo historical failed for ${ticker}, trying Stooq:`, e.message);
+  }
+
   const stooqUrl = `https://stooq.com/q/d/l/?s=${ticker.toLowerCase()}.us&i=d`;
   const attempts = [stooqUrl, ...CORS_PROXIES.map((p) => p(stooqUrl))];
 
