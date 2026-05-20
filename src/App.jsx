@@ -406,8 +406,17 @@ export default function InvestmentTracker() {
     setIsFetchingPrices(true);
 
     const localPrices = { qqq: null, vti: null, vt: null, qld: null, soxx: null };
+    const today = new Date().toISOString().split('T')[0];
+    const isTodayOrFuture = newDeposit.date >= today;
 
     const findLocalPrice = (ticker) => {
+      // For today/future deposits, prefer the live "current" price (from /q/l/
+      // or manual settings) over the historical CSV — Stooq's historical daily
+      // download is dividend-adjusted and can also lag by a day or two.
+      if (isTodayOrFuture) {
+        const current = parseFloat(marketSettings[`current${ticker}`]) || 0;
+        if (current > 0) return current;
+      }
       const data = marketData[ticker];
       if (!data || data.length === 0) return null;
       for (let i = data.length - 1; i >= 0; i--) {
@@ -960,11 +969,26 @@ export default function InvestmentTracker() {
     try {
       const history = await fetchHistoricalPrices(ticker);
 
+      // Stooq's daily CSV is dividend-adjusted and can lag the latest trading
+      // day. Preserve any existing entries that are strictly newer than the
+      // history we just fetched — those typically come from /q/l/ (real-time,
+      // unadjusted) via autoUpdateLatestPrices and we don't want to lose them.
+      const maxHistoryDate = history.reduce(
+        (max, h) => (h.date > max ? h.date : max),
+        ''
+      );
+      const existing = marketData[ticker] || [];
+      const preserved = existing.filter((e) => e.date > maxHistoryDate);
+      const stored =
+        preserved.length > 0
+          ? [...history, ...preserved].sort((a, b) => a.date.localeCompare(b.date))
+          : history;
+
       await setDoc(
         doc(db, 'artifacts', appId, 'users', user.uid, 'marketData', ticker),
-        { prices: history, updatedAt: new Date().toISOString() }
+        { prices: stored, updatedAt: new Date().toISOString() }
       );
-      setMarketData((prev) => ({ ...prev, [ticker]: history }));
+      setMarketData((prev) => ({ ...prev, [ticker]: stored }));
 
       const findClosest = (date) => {
         for (let i = history.length - 1; i >= 0; i--) {
