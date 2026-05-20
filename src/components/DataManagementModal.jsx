@@ -12,6 +12,7 @@ export default function DataManagementModal({
   onRestore,
   onUploadMarketData,
   onBackfillTicker,
+  onBackfillAll,
   isBackfillingTicker,
 }) {
   const fileInputRef = useRef(null);
@@ -166,6 +167,23 @@ export default function DataManagementModal({
               <h3 className="text-[11px] font-medium text-slate-500 uppercase tracking-wider mb-2.5">
                 自動補齊歷史價
               </h3>
+              {onBackfillAll && (
+                <button
+                  type="button"
+                  onClick={onBackfillAll}
+                  disabled={!!isBackfillingTicker}
+                  className="w-full flex items-center justify-center gap-2 py-2.5 mb-2 bg-slate-900 hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-lg transition-colors"
+                >
+                  {isBackfillingTicker ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <Sparkles className="w-3.5 h-3.5" />
+                  )}
+                  <span className="text-xs font-medium tracking-wide">
+                    {isBackfillingTicker ? `補齊 ${isBackfillingTicker} 中...` : '一鍵全部補齊'}
+                  </span>
+                </button>
+              )}
               <div className="grid grid-cols-3 gap-2">
                 {['QQQ', 'VTI', 'VT', 'QLD', 'SOXX'].map((ticker) => {
                   const busy = isBackfillingTicker === ticker;
@@ -175,12 +193,12 @@ export default function DataManagementModal({
                       key={ticker}
                       onClick={() => onBackfillTicker(ticker)}
                       disabled={anyBusy}
-                      className="flex items-center justify-center gap-1.5 py-2 bg-slate-900 hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-lg transition-colors"
+                      className="flex items-center justify-center gap-1.5 py-2 bg-white hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed text-slate-700 rounded-lg transition-colors border border-slate-200"
                     >
                       {busy ? (
                         <Loader2 className="w-3.5 h-3.5 animate-spin" />
                       ) : (
-                        <Sparkles className="w-3.5 h-3.5" />
+                        <Sparkles className="w-3.5 h-3.5 text-slate-400" />
                       )}
                       <span className="text-[11px] font-medium tracking-wide">{ticker}</span>
                     </button>
@@ -188,7 +206,7 @@ export default function DataManagementModal({
                 })}
               </div>
               <p className="text-[10px] text-slate-400 mt-2">
-                從 Stooq 抓歷史日線並回填舊交易紀錄缺的當時價
+                從 Stooq 抓歷史日線並回填舊交易紀錄缺的當時價,新使用者首次載入時會自動執行
               </p>
             </div>
           )}
