@@ -409,47 +409,54 @@ export default function InvestmentTracker() {
     const today = new Date().toISOString().split('T')[0];
     const isTodayOrFuture = newDeposit.date >= today;
 
-    const findLocalPrice = (ticker) => {
-      // For today/future deposits, prefer the live "current" price (from /q/l/
-      // or manual settings) over the historical CSV — Stooq's historical daily
-      // download is dividend-adjusted and can also lag by a day or two.
-      if (isTodayOrFuture) {
-        const current = parseFloat(marketSettings[`current${ticker}`]) || 0;
-        if (current > 0) return current;
-      }
-      const data = marketData[ticker];
-      if (!data || data.length === 0) return null;
-      for (let i = data.length - 1; i >= 0; i--) {
-        if (data[i].date <= newDeposit.date) {
-          return data[i].close;
+    // For PAST dates: use local marketData (Stooq historical CSV).
+    // For TODAY/FUTURE: skip local cache and force an AI search for the
+    // official close — /q/l/ and marketSettings.currentX can hold an
+    // intraday last price (e.g. $717.91 when the official close is
+    // $701.53), which is the wrong number for a "當時價" field.
+    if (!isTodayOrFuture) {
+      const findLocalPrice = (ticker) => {
+        const data = marketData[ticker];
+        if (!data || data.length === 0) return null;
+        for (let i = data.length - 1; i >= 0; i--) {
+          if (data[i].date <= newDeposit.date) {
+            return data[i].close;
+          }
         }
-      }
-      return null;
-    };
+        return null;
+      };
+      localPrices.qqq = findLocalPrice('QQQ');
+      localPrices.vti = findLocalPrice('VTI');
+      localPrices.vt = findLocalPrice('VT');
+      localPrices.qld = findLocalPrice('QLD');
+      localPrices.soxx = findLocalPrice('SOXX');
 
-    localPrices.qqq = findLocalPrice('QQQ');
-    localPrices.vti = findLocalPrice('VTI');
-    localPrices.vt = findLocalPrice('VT');
-    localPrices.qld = findLocalPrice('QLD');
-    localPrices.soxx = findLocalPrice('SOXX');
-
-    setNewDeposit((prev) => ({
-      ...prev,
-      qqqPrice: localPrices.qqq || prev.qqqPrice,
-      vtiPrice: localPrices.vti || prev.vtiPrice,
-      vtPrice: localPrices.vt || prev.vtPrice,
-      qldPrice: localPrices.qld || prev.qldPrice,
-      soxxPrice: localPrices.soxx || prev.soxxPrice,
-    }));
+      setNewDeposit((prev) => ({
+        ...prev,
+        qqqPrice: localPrices.qqq || prev.qqqPrice,
+        vtiPrice: localPrices.vti || prev.vtiPrice,
+        vtPrice: localPrices.vt || prev.vtPrice,
+        qldPrice: localPrices.qld || prev.qldPrice,
+        soxxPrice: localPrices.soxx || prev.soxxPrice,
+      }));
+    }
 
     const missingStocks =
-      !localPrices.qqq || !localPrices.vti || !localPrices.vt || !localPrices.qld || !localPrices.soxx;
+      isTodayOrFuture ||
+      !localPrices.qqq ||
+      !localPrices.vti ||
+      !localPrices.vt ||
+      !localPrices.qld ||
+      !localPrices.soxx;
     const missingRate = !newDeposit.exchangeRate;
 
     if (missingStocks || missingRate) {
       try {
         const prompt = `
-            I have these values from local CSV:
+            Find the official daily CLOSING PRICES (the last regular-session trade at 4:00 PM ET, as published by the exchange) for these US ETFs on ${newDeposit.date}.
+            Do NOT return the high, low, open, intraday last, pre-market, or after-hours price.
+
+            I have these values from local data:
             QQQ: ${localPrices.qqq || 'MISSING'}
             VTI: ${localPrices.vti || 'MISSING'}
             VT: ${localPrices.vt || 'MISSING'}
@@ -457,12 +464,13 @@ export default function InvestmentTracker() {
             SOXX: ${localPrices.soxx || 'MISSING'}
             Rate: ${newDeposit.exchangeRate || 'MISSING'}
 
-            Please find the MISSING historical prices on ${newDeposit.date} from public financial data.
+            Please find the MISSING closing prices for ${newDeposit.date}.
             For Exchange Rate (USD to TWD), ALWAYS find it.
 
             Rules:
-            - If ${newDeposit.date} is a weekend/holiday, use the previous trading day's close.
-            - Output ONLY valid JSON. No markdown.
+            - If ${newDeposit.date} is today and the US market hasn't closed yet (before 4:00 PM ET), use the previous trading day's close.
+            - If ${newDeposit.date} is a weekend or US market holiday, use the previous trading day's close.
+            - Output ONLY valid JSON. No markdown, no commentary.
 
             JSON Format:
             {
