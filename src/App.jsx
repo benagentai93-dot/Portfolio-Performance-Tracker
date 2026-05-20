@@ -453,8 +453,15 @@ export default function InvestmentTracker() {
     if (missingStocks || missingRate) {
       try {
         const prompt = `
-            Find the official daily CLOSING PRICES (the last regular-session trade at 4:00 PM ET, as published by the exchange) for these US ETFs on ${newDeposit.date}.
-            Do NOT return the high, low, open, intraday last, pre-market, or after-hours price.
+            Find the official daily CLOSING PRICES for these US ETFs on ${newDeposit.date}.
+
+            IMPORTANT - DATA SOURCE:
+            - Use Yahoo Finance, Google Finance, or Nasdaq.com as your authoritative source.
+            - You MUST report the unadjusted "Close" value as shown on Yahoo Finance / Google Finance.
+            - Do NOT use Stooq.com or Investing.com — their default historical data is dividend-adjusted and will differ from the actual market close.
+            - Do NOT report the "Adj Close" / adjusted close value.
+            - Do NOT report the high, low, open, intraday last trade, pre-market, or after-hours price.
+            - The closing price is the last regular-session trade at 4:00 PM ET, as published by the exchange.
 
             I have these values from local data:
             QQQ: ${localPrices.qqq || 'MISSING'}
@@ -511,6 +518,18 @@ export default function InvestmentTracker() {
             soxxPrice: aiPrices.soxx || prev.soxxPrice,
             exchangeRate: aiPrices.rate || prev.exchangeRate,
           }));
+          if (isTodayOrFuture) {
+            const parts = [];
+            if (aiPrices.qqq) parts.push(`QQQ ${aiPrices.qqq}`);
+            if (aiPrices.vti) parts.push(`VTI ${aiPrices.vti}`);
+            if (aiPrices.vt) parts.push(`VT ${aiPrices.vt}`);
+            if (aiPrices.qld) parts.push(`QLD ${aiPrices.qld}`);
+            if (aiPrices.soxx) parts.push(`SOXX ${aiPrices.soxx}`);
+            setNotification({
+              type: 'success',
+              message: `AI 回傳: ${parts.join(' / ')}`,
+            });
+          }
         } else {
           setNotification({ type: 'error', message: 'AI 回應格式錯誤' });
         }
